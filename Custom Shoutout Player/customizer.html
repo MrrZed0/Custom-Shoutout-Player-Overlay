@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shoutout Overlay Customizer Studio (600+ Styles &amp; Effects)</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Outfit:wght@400;600;700;900&family=Rajdhani:wght@600;700&family=Bebas+Neue&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0b0b12;
+    --panel-bg: #13131f;
+    --card-bg: #1b1b2c;
+    --accent: #9146ff;
+    --accent-2: #00f0ff;
+    --text: #f1f1f8;
+    --muted: #9292b2;
+    --border: rgba(255,255,255,0.09);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Left Control Sidebar */
+  .sidebar {
+    background: var(--panel-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .brand-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(11, 11, 18, 0.6);
+  }
+  .brand-header h1 {
+    font-size: 20px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #fff, var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-header p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* Sidebar Navigation Tabs */
+  .sidebar-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    padding: 10px 14px;
+    background: #0e0e18;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-tab {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.18s;
+    font-family: inherit;
+  }
+  .side-tab:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+  .side-tab.active {
+    background: linear-gradient(135deg, var(--accent), #6d28d9);
+    color: #fff;
+    border-color: var(--accent-2);
+    box-shadow: 0 2px 10px rgba(145, 70, 255, 0.35);
+  }
+
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .section-box.hidden-tab { display: none; }
+  .section-title {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d6d6ec;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  label span.val { color: var(--accent-2); font-weight: 800; }
+
+  input[type="text"], input[type="number"], select {
+    background: #0e0e18;
+    border: 1px solid var(--border);
+    color: #fff;
+    padding: 8px 11px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    width: 100%;
+  }
+  input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  input[type="color"] {
+    width: 100%;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #0e0e18;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  /* Quick Platform & Twitch Swatches */
+  .swatch-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .color-swatch:hover { transform: scale(1.15); border-color: #fff; }
+  .color-swatch.active { border-color: var(--accent-2); box-shadow: 0 0 8px var(--accent-2); }
+
+  .platform-quick-btns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .plat-btn {
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #fff;
+    text-align: center;
+    transition: 0.2s;
+  }
+  .plat-btn.twitch { background: rgba(145, 70, 255, 0.25); border-color: #9146ff; }
+  .plat-btn.youtube { background: rgba(255, 0, 51, 0.25); border-color: #ff0033; }
+  .plat-btn.kick { background: rgba(83, 252, 24, 0.2); border-color: #53fc18; color: #53fc18; }
+  .plat-btn:hover { filter: brightness(1.25); }
+
+  .btn {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #6d28d9);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(145, 70, 255, 0.4);
+  }
+  .btn-primary:hover { filter: brightness(1.12); }
+  .btn-secondary {
+    background: #25253c;
+    color: #fff;
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: #30304d; }
+
+  .url-box {
+    background: #090910;
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #a5f3fc;
+    word-break: break-all;
+    max-height: 75px;
+    overflow-y: auto;
+  }
+
+  .sidebar-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: #0e0e18;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Right Main Workspace */
+  .workspace {
+    display: grid;
+    grid-template-rows: 370px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Live Preview Stage */
+  .preview-header {
+    position: relative;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(145, 70, 255, 0.16), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.12), transparent 50%),
+      repeating-conic-gradient(#12121e 0% 25%, #171726 0% 50%) 50% / 28px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .preview-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    background: rgba(11, 11, 18, 0.82);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .preview-status-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .status-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    padding: 4px 9px;
+    border-radius: 6px;
+  }
+  .status-pill strong { color: var(--accent-2); }
+  .preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  #preview-iframe {
+    width: 100%;
+    flex: 1;
+    border: none;
+  }
+
+  /* 5-Library Tab Bar & Grid */
+  .border-library {
+    padding: 16px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .library-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .lib-tab {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.2s;
+    font-family: inherit;
+  }
+  .lib-tab:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+  .lib-tab.active {
+    background: linear-gradient(135deg, rgba(145, 70, 255, 0.35), rgba(0, 240, 255, 0.2));
+    color: #fff;
+    border-color: var(--accent-2);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.2);
+  }
+
+  .library-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .library-controls input { flex: 1; min-width: 200px; }
+  .cat-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cat-pill {
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .cat-pill.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .borders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 12px;
+    padding-bottom: 36px;
+  }
+  .border-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.18s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .border-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.3); }
+  .border-card.selected {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.3);
+  }
+  .border-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #090910;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    padding: 6px;
+    overflow: hidden;
+  }
+  .border-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    gap: 4px;
+  }
+  .border-name {
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .border-id { color: var(--accent-2); font-weight: 800; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand-header">
+    <h1>SHOUTOUT STUDIO PRO</h1>
+    <p>600+ Borders, Banners, FX, Glows &amp; Animations &bull; Streamer.bot</p>
+  </div>
+
+  <!-- EASY NAVIGATION TABS -->
+  <div class="sidebar-tabs">
+    <button class="side-tab active" data-tab="all">All</button>
+    <button class="side-tab" data-tab="timing">Layout</button>
+    <button class="side-tab" data-tab="sizes">Sizes</button>
+    <button class="side-tab" data-tab="colors">Colors</button>
+    <button class="side-tab" data-tab="export">OBS URL</button>
+  </div>
+
+  <div class="sidebar-content">
+    <!-- 1. TIMING & PLAYBACK CONTROLS -->
+    <div class="section-box" data-section="timing">
+      <div class="section-title">1. Alert &amp; Clip Time Limits</div>
+      <div class="field">
+        <label>Alert Display Duration <span class="val" id="lbl-alertTime">10s</span></label>
+        <input type="range" id="cfg-alertDuration" min="2" max="30" value="10" />
+      </div>
+      <div class="field">
+        <label>Twitch Clip Time Limit <span class="val" id="lbl-clipTime">30s</span></label>
+        <input type="range" id="cfg-clipDuration" min="5" max="90" value="30" />
+      </div>
+      <div class="field">
+        <label>Clip Audio Volume <span class="val" id="lbl-volume">80%</span></label>
+        <input type="range" id="cfg-volume" min="0" max="100" value="80" />
+      </div>
+    </div>
+
+    <!-- 2. TEXT & POSITION LAYOUT -->
+    <div class="section-box" data-section="timing">
+      <div class="section-title">2. Alert Text &amp; Screen Position</div>
+      <div class="field">
+        <label>Alert Title Text</label>
+        <input type="text" id="cfg-alertPrefix" value="SHOUTOUT TO" />
+      </div>
+      <div class="field">
+        <label>Fallback Subtitle</label>
+        <input type="text" id="cfg-alertSubtext" value="Go drop them a follow!" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Overlay Position</label>
+          <select id="cfg-position">
+            <option value="pos-center">Center Screen</option>
+            <option value="pos-bottom-left">Bottom Left</option>
+            <option value="pos-bottom-right">Bottom Right</option>
+            <option value="pos-top-left">Top Left</option>
+            <option value="pos-top-right">Top Right</option>
+            <option value="pos-bottom-center">Bottom Center</option>
+            <option value="pos-top-center">Top Center</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Font Style</label>
+          <select id="cfg-fontFamily">
+            <option value="'Outfit', sans-serif">Outfit Modern</option>
+            <option value="'Orbitron', sans-serif">Orbitron Cyber</option>
+            <option value="'Rajdhani', sans-serif">Rajdhani Tactical</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Arcade</option>
+            <option value="'Montserrat', sans-serif">Montserrat Bold</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TEXT, AVATAR, PLAYER & ALERT BORDER SIZES -->
+    <div class="section-box" data-section="sizes">
+      <div class="section-title">3. Text, Avatar &amp; Border Sizes</div>
+      <div class="field">
+        <label>Player Width <span class="val" id="lbl-width">720px</span></label>
+        <input type="range" id="cfg-playerWidth" min="360" max="1280" step="20" value="720" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Clip Border Size <span class="val" id="lbl-thick">6px</span></label>
+          <input type="range" id="cfg-borderThickness" min="0" max="24" value="6" />
+        </div>
+        <div class="field">
+          <label>Clip Corner Radius <span class="val" id="lbl-radius">18px</span></label>
+          <input type="range" id="cfg-borderRadius" min="0" max="45" value="18" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Alert Border Size <span class="val" id="lbl-alertThick">3px</span></label>
+          <input type="range" id="cfg-alertBorderThickness" min="0" max="20" value="3" />
+        </div>
+        <div class="field">
+          <label>Alert Corner Radius <span class="val" id="lbl-alertRadius">50px</span></label>
+          <input type="range" id="cfg-alertBorderRadius" min="0" max="60" value="50" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Title Text Size <span class="val" id="lbl-titleSize">15px</span></label>
+          <input type="range" id="cfg-titleSize" min="10" max="36" value="15" />
+        </div>
+        <div class="field">
+          <label>Username Size <span class="val" id="lbl-usernameSize">40px</span></label>
+          <input type="range" id="cfg-usernameSize" min="18" max="72" value="40" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Game Name Size <span class="val" id="lbl-gameSize">14px</span></label>
+          <input type="range" id="cfg-gameSize" min="10" max="32" value="14" />
+        </div>
+        <div class="field">
+          <label>Avatar Size <span class="val" id="lbl-avatarSize">92px</span></label>
+          <input type="range" id="cfg-avatarSize" min="48" max="150" value="92" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Glow &amp; Shadow Intensity <span class="val" id="lbl-glow">22px</span></label>
+        <input type="range" id="cfg-glowSize" min="0" max="60" value="22" />
+      </div>
+    </div>
+
+    <!-- 4. COLORS, PLATFORM THEMES & TWITCH USER COLOR SET -->
+    <div class="section-box" data-section="colors">
+      <div class="section-title">4. Colors, Platform &amp; Twitch Palette</div>
+      <div class="field">
+        <label>Color Theme Mode</label>
+        <select id="cfg-colorMode">
+          <option value="preset">Use Selected Border Preset Colors</option>
+          <option value="custom">Use Custom Colors Below</option>
+          <option value="twitch-user">Use User's Twitch Chat Color</option>
+          <option value="platform-auto">Auto Platform Color (Twitch / YT / Kick)</option>
+          <option value="twitch-purple">Twitch Purple Theme (#9146FF)</option>
+          <option value="youtube-red">YouTube Red Theme (#FF0033)</option>
+          <option value="kick-green">Kick Green Theme (#53FC18)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Quick Platform Color Presets</label>
+        <div class="platform-quick-btns">
+          <button type="button" class="plat-btn twitch" id="btn-plat-twitch">Twitch Purple</button>
+          <button type="button" class="plat-btn youtube" id="btn-plat-youtube">YouTube Red</button>
+          <button type="button" class="plat-btn kick" id="btn-plat-kick">Kick Green</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>User's Twitch Color Set (Click to Apply / Fallback)</label>
+        <div class="swatch-grid" id="twitch-color-swatches"></div>
+      </div>
+
+      <div class="field" style="margin-top:4px;">
+        <label style="cursor:pointer;">
+          <span>Override Border Preset Colors</span>
+          <input type="checkbox" id="cfg-useCustomColors" />
+        </label>
+      </div>
+
+      <div class="field-row-3">
+        <div class="field">
+          <label>Border 1</label>
+          <input type="color" id="cfg-primary" value="#9146ff" />
+        </div>
+        <div class="field">
+          <label>Border 2</label>
+          <input type="color" id="cfg-secondary" value="#00f0ff" />
+        </div>
+        <div class="field">
+          <label>Border 3</label>
+          <input type="color" id="cfg-accent" value="#ff007f" />
+        </div>
+      </div>
+
+      <div class="field-row-3">
+        <div class="field">
+          <label>Alert Border</label>
+          <input type="color" id="cfg-alertBorderColor" value="#9146ff" />
+        </div>
+        <div class="field">
+          <label>Alert BG 1</label>
+          <input type="color" id="cfg-alertBg1" value="#0e0e18" />
+        </div>
+        <div class="field">
+          <label>Alert BG 2</label>
+          <input type="color" id="cfg-alertBg2" value="#1a142d" />
+        </div>
+      </div>
+
+      <div class="field-row-3">
+        <div class="field">
+          <label>Title Text</label>
+          <input type="color" id="cfg-titleColor" value="#00f0ff" />
+        </div>
+        <div class="field">
+          <label>Username</label>
+          <input type="color" id="cfg-usernameColor" value="#ffffff" />
+        </div>
+        <div class="field">
+          <label>Game Text</label>
+          <input type="color" id="cfg-gameColor" value="#00f0ff" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label style="cursor:pointer;">
+          <span>Apply Custom Text &amp; Alert Border Colors</span>
+          <input type="checkbox" id="cfg-useCustomTextColors" />
+        </label>
+      </div>
+    </div>
+
+    <!-- 5. STREAMER.BOT WEBSOCKET & EXPORT -->
+    <div class="section-box" data-section="export">
+      <div class="section-title">5. Save &amp; OBS Overlay URL</div>
+      <div class="field-row">
+        <div class="field">
+          <label>WS Host</label>
+          <input type="text" id="cfg-wsHost" value="127.0.0.1" />
+        </div>
+        <div class="field">
+          <label>WS Port</label>
+          <input type="number" id="cfg-wsPort" value="8080" />
+        </div>
+      </div>
+      <div class="url-box" id="obs-url-display"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="btn btn-primary" id="btn-copy-url">Copy OBS Browser Source URL</button>
+  </div>
+</aside>
+
+<main class="workspace">
+  <!-- LIVE PREVIEW AREA -->
+  <section class="preview-header">
+    <div class="preview-toolbar">
+      <div class="preview-status-pills">
+        <span class="status-pill">Clip Border: <strong id="selected-border-label">#1</strong></span>
+        <span class="status-pill">Alert Banner: <strong id="selected-alert-label">#1</strong></span>
+        <span class="status-pill">In/Out FX: <strong id="selected-inout-label">#1</strong></span>
+        <span class="status-pill">Glow/Shadow: <strong id="selected-glow-label">#1</strong></span>
+        <span class="status-pill">Animation: <strong id="selected-anim-label">#1</strong></span>
+      </div>
+      <div class="preview-actions">
+        <button class="btn btn-secondary" id="btn-test-local">Preview Standard Shoutout</button>
+        <button class="btn btn-secondary" id="btn-test-long" title="Tests a very long username and game title at your current screen position">Test Long Name (Edge Fix)</button>
+      </div>
+    </div>
+    <iframe id="preview-iframe" src="overlay.html"></iframe>
+  </section>
+
+  <!-- 5x 120+ PRESET LIBRARIES -->
+  <section class="border-library">
+    <div class="library-mode-tabs">
+      <button class="lib-tab active" data-lib="borders">1. Clip Borders (120)</button>
+      <button class="lib-tab" data-lib="alerts">2. Alert Banners (120)</button>
+      <button class="lib-tab" data-lib="inout">3. In/Out Effects (120)</button>
+      <button class="lib-tab" data-lib="glows">4. Glows &amp; Shadows (120)</button>
+      <button class="lib-tab" data-lib="anims">5. Border &rarr; Banner Anims (120)</button>
+    </div>
+    <div class="library-controls">
+      <input type="text" id="search-borders" placeholder="Search 120 presets in current tab (e.g., Cyber, Gold, Hazard, HUD, Bounce, Glitch, Neon)..." />
+      <div class="cat-pills" id="category-pills"></div>
+    </div>
+    <div class="borders-grid" id="borders-grid"></div>
+  </section>
+</main>
+
+<script>
+const TWITCH_USER_COLORS = [
+  { name: "Twitch Purple", hex: "#9146FF" },
+  { name: "Blue", hex: "#0000FF" },
+  { name: "Coral", hex: "#FF7F50" },
+  { name: "DodgerBlue", hex: "#1E90FF" },
+  { name: "SpringGreen", hex: "#00FF7F" },
+  { name: "YellowGreen", hex: "#9ACD32" },
+  { name: "Green", hex: "#008000" },
+  { name: "OrangeRed", hex: "#FF4500" },
+  { name: "Red", hex: "#FF0000" },
+  { name: "GoldenRod", hex: "#DAA520" },
+  { name: "HotPink", hex: "#FF69B4" },
+  { name: "CadetBlue", hex: "#5F9EA0" },
+  { name: "SeaGreen", hex: "#2E8B57" },
+  { name: "Chocolate", hex: "#D2691E" },
+  { name: "BlueViolet", hex: "#8A2BE2" },
+  { name: "Firebrick", hex: "#B22222" }
+];
+
+const BORDER_PALETTES = [
+  { name: "Twitch Neon", c1: "#9146ff", c2: "#00f0ff", c3: "#ff007f" },
+  { name: "Cyberpunk 2077", c1: "#fcee0a", c2: "#00f0ff", c3: "#ff003c" },
+  { name: "Inferno Blaze", c1: "#ff2a00", c2: "#ff9900", c3: "#ffee00" },
+  { name: "Arctic Frost", c1: "#00d2ff", c2: "#3a7bd5", c3: "#e0ffff" },
+  { name: "Toxic Venom", c1: "#53fc18", c2: "#00b09b", c3: "#111111" },
+  { name: "Royal Gold", c1: "#ffd700", c2: "#b8860b", c3: "#fff8dc" },
+  { name: "Blood Moon", c1: "#ff0033", c2: "#660011", c3: "#ff6680" },
+  { name: "Synthwave Sunset", c1: "#ff00aa", c2: "#7700ff", c3: "#00ffff" },
+  { name: "Matrix Code", c1: "#00ff41", c2: "#008f11", c3: "#003b00" },
+  { name: "Obsidian Stealth", c1: "#2c3e50", c2: "#bdc3c7", c3: "#000000" },
+  { name: "Aurora Borealis", c1: "#00ff87", c2: "#60efff", c3: "#7b2cbf" },
+  { name: "Cotton Candy", c1: "#ff9ebb", c2: "#a2d2ff", c3: "#cdb4db" }
+];
+
+const BORDER_ARCHETYPES = [
+  { type: "neon-flow", label: "Neon Flow", cat: "Neon & Cyber" },
+  { type: "double-laser", label: "Dual Laser Rail", cat: "Neon & Cyber" },
+  { type: "hud-tactical", label: "Tactical HUD Brackets", cat: "Gaming & HUD" },
+  { type: "mecha-corners", label: "Mecha Sci-Fi Frame", cat: "Gaming & HUD" },
+  { type: "hazard-stripes", label: "Hazard Caution Frame", cat: "Retro & Pattern" },
+  { type: "plasma-pulse", label: "Plasma Aura Pulse", cat: "Fire & Elemental" },
+  { type: "prism-glass", label: "Crystal Glassmorphic", cat: "Luxury & Glass" },
+  { type: "gold-filigree", label: "Prestige Crown Trim", cat: "Luxury & Glass" },
+  { type: "glitch-cyber", label: "Glitch Overload", cat: "Neon & Cyber" },
+  { type: "retro-arcade", label: "Arcade Pixel Bevel", cat: "Retro & Pattern" }
+];
+
+// 1. 120+ Clip Player Borders
+const ALL_BORDERS = Array.from({ length: 120 }, (_, i) => {
+  const arch = BORDER_ARCHETYPES[i % BORDER_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(i / BORDER_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: i + 1,
+    name: `${pal.name} ${arch.label}`,
+    category: arch.cat,
+    type: arch.type,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+});
+
+// 2. 120+ Alert Banner Styles
+const ALERT_ARCHETYPES = [
+  { type: "capsule-neon", label: "Neon Capsule Pill", cat: "Modern & Pill" },
+  { type: "cyber-angled", label: "Cyber Angled Blade", cat: "Cyber & Sci-Fi" },
+  { type: "hud-chassis", label: "Tactical HUD Chassis", cat: "Cyber & Sci-Fi" },
+  { type: "glass-frost", label: "Frosted Crystal Bar", cat: "Glass & Luxury" },
+  { type: "royal-crest", label: "Prestige Gold Trim", cat: "Glass & Luxury" },
+  { type: "esports-slant", label: "Esports Pro Slant", cat: "Esports & Broadcast" },
+  { type: "broadcast-lower", label: "Broadcast Lower Third", cat: "Esports & Broadcast" },
+  { type: "arcade-bevel", label: "Retro Arcade Cartridge", cat: "Retro & Hazard" },
+  { type: "hazard-plate", label: "Industrial Hazard Plate", cat: "Retro & Hazard" },
+  { type: "plasma-core", label: "Plasma Energy Core", cat: "Modern & Pill" }
+];
+
+const ALL_ALERTS = Array.from({ length: 120 }, (_, i) => {
+  const arch = ALERT_ARCHETYPES[i % ALERT_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(i / ALERT_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: i + 1,
+    name: `${pal.name} ${arch.label}`,
+    category: arch.cat,
+    type: arch.type,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+});
+
+// 3. 120+ In/Out Transition Effects
+const INOUT_FAMILIES = [
+  { type: "elastic-pop", label: "Elastic Pop", cat: "Pop & Bounce" },
+  { type: "cyber-glitch", label: "Cyber Glitch Warp", cat: "Glitch & Sci-Fi" },
+  { type: "flip-3d-x", label: "3D Horizon Flip", cat: "3D Perspective" },
+  { type: "flip-3d-y", label: "3D Vortex Spin", cat: "3D Perspective" },
+  { type: "slide-skew", label: "Velocity Skew Slide", cat: "Slide & Whip" },
+  { type: "whip-pan", label: "Supersonic Whip Pan", cat: "Slide & Whip" },
+  { type: "drop-bounce", label: "Orbital Drop Bounce", cat: "Pop & Bounce" },
+  { type: "portal-iris", label: "Quantum Portal Expand", cat: "Glitch & Sci-Fi" },
+  { type: "hyper-zoom", label: "Hyperdrive Zoom", cat: "Zoom & Spiral" },
+  { type: "spiral-spin", label: "Helix Corkscrew", cat: "Zoom & Spiral" },
+  { type: "matrix-slice", label: "Digital Matrix Reveal", cat: "Glitch & Sci-Fi" },
+  { type: "smooth-cinema", label: "Cinema Velvet Rise", cat: "Smooth & Fade" }
+];
+
+const INOUT_PROFILES = [
+  { dir: "up", suffix: "Upward Thrust" },
+  { dir: "down", suffix: "Skyfall Drop" },
+  { dir: "left", suffix: "Left Vector" },
+  { dir: "right", suffix: "Right Vector" },
+  { dir: "center-fast", suffix: "Blitz Snap" },
+  { dir: "center-overshoot", suffix: "Spring Overshoot" },
+  { dir: "diag-tl", suffix: "NW Diagonal" },
+  { dir: "diag-br", suffix: "SE Diagonal" },
+  { dir: "twist-cw", suffix: "Clockwise Torque" },
+  { dir: "twist-ccw", suffix: "Counter Torque" }
+];
+
+const ALL_INOUT_FX = Array.from({ length: 120 }, (_, i) => {
+  const fam = INOUT_FAMILIES[i % INOUT_FAMILIES.length];
+  const prof = INOUT_PROFILES[Math.floor(i / INOUT_FAMILIES.length) % INOUT_PROFILES.length];
+  const pal = BORDER_PALETTES[i % BORDER_PALETTES.length];
+  return {
+    id: i + 1,
+    name: `${fam.label}: ${prof.suffix}`,
+    category: fam.cat,
+    type: fam.type,
+    dir: prof.dir,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+});
+
+// 4. 120+ Glows & Shadows
+const GLOW_ARCHETYPES = [
+  { type: "neon-bloom", label: "Dual Neon Bloom", cat: "Neon Glows" },
+  { type: "abyss-drop", label: "Abyss Deep Shadow", cat: "Dark Shadows" },
+  { type: "rgb-split", label: "Chromatic RGB Split", cat: "Cyber Shadows" },
+  { type: "hard-esports", label: "Hard Esports Offset", cat: "Hard & Comic" },
+  { type: "ethereal-halo", label: "Celestial Halo Ring", cat: "Neon Glows" },
+  { type: "inferno-ember", label: "Ember Core Radiance", cat: "Elemental Glows" },
+  { type: "frost-rim", label: "Cryo Rim Shimmer", cat: "Elemental Glows" },
+  { type: "laser-crisp", label: "Razor Laser Outline", cat: "Cyber Shadows" },
+  { type: "retro-crt", label: "CRT Phosphor Haze", cat: "Hard & Comic" },
+  { type: "volumetric-mist", label: "Volumetric Multi-Aura", cat: "Dark Shadows" }
+];
+
+const ALL_GLOWS = Array.from({ length: 120 }, (_, i) => {
+  const arch = GLOW_ARCHETYPES[i % GLOW_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(i / GLOW_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: i + 1,
+    name: `${pal.name} ${arch.label}`,
+    category: arch.cat,
+    type: arch.type,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+});
+
+// 5. 120+ Border-to-Banner Animations
+const ANIM_ARCHETYPES = [
+  { type: "energy-conduit", label: "Border-to-Banner Conduit", cat: "Energy Sync" },
+  { type: "orbit-comet", label: "Orbiting Laser Comet", cat: "Orbital & Flow" },
+  { type: "plasma-wave", label: "Harmonic Plasma Wave", cat: "Orbital & Flow" },
+  { type: "heartbeat-surge", label: "Adrenaline Heartbeat", cat: "Pulse & Breath" },
+  { type: "rainbow-prism", label: "Chroma Spectrum Sync", cat: "Spectrum & Glitch" },
+  { type: "cyber-scanline", label: "Tactical Scanline Link", cat: "Spectrum & Glitch" },
+  { type: "dual-polarity", label: "Dual Polarity Breath", cat: "Pulse & Breath" },
+  { type: "electric-arc", label: "High-Voltage Arc", cat: "Energy Sync" },
+  { type: "tachyon-stream", label: "Tachyon Particle Flow", cat: "Orbital & Flow" },
+  { type: "supernova-ripple", label: "Supernova Aura Ripple", cat: "Pulse & Breath" }
+];
+
+const ALL_ANIMS = Array.from({ length: 120 }, (_, i) => {
+  const arch = ANIM_ARCHETYPES[i % ANIM_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(i / ANIM_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: i + 1,
+    name: `${pal.name} ${arch.label}`,
+    category: arch.cat,
+    type: arch.type,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+});
+
+let state = {
+  wsHost: "127.0.0.1",
+  wsPort: "8080",
+  alertDuration: 10,
+  clipDuration: 30,
+  borderId: 1,
+  alertStyleId: 1,
+  inOutEffectId: 1,
+  glowShadowId: 1,
+  animStyleId: 1,
+  colorMode: "preset",
+  twitchUserColor: "#9146FF",
+  useCustomColors: false,
+  useCustomTextColors: false,
+  primary: "#9146ff",
+  secondary: "#00f0ff",
+  accent: "#ff007f",
+  alertBorderColor: "#9146ff",
+  alertBg1: "#0e0e18",
+  alertBg2: "#1a142d",
+  titleColor: "#00f0ff",
+  usernameColor: "#ffffff",
+  gameColor: "#00f0ff",
+  alertPrefix: "SHOUTOUT TO",
+  alertSubtext: "Go drop them a follow!",
+  borderThickness: 6,
+  borderRadius: 18,
+  alertBorderThickness: 3,
+  alertBorderRadius: 50,
+  titleSize: 15,
+  usernameSize: 40,
+  gameSize: 14,
+  avatarSize: 92,
+  glowSize: 22,
+  playerWidth: 720,
+  position: "pos-center",
+  fontFamily: "'Outfit', sans-serif",
+  volume: 80
+};
+
+let activeLibrary = "borders";
+let activeCategory = "All";
+
+function getActiveCatalog() {
+  if (activeLibrary === "alerts") return ALL_ALERTS;
+  if (activeLibrary === "inout") return ALL_INOUT_FX;
+  if (activeLibrary === "glows") return ALL_GLOWS;
+  if (activeLibrary === "anims") return ALL_ANIMS;
+  return ALL_BORDERS;
+}
+
+function getSelectedIdForActiveLibrary() {
+  if (activeLibrary === "alerts") return state.alertStyleId;
+  if (activeLibrary === "inout") return state.inOutEffectId;
+  if (activeLibrary === "glows") return state.glowShadowId;
+  if (activeLibrary === "anims") return state.animStyleId;
+  return state.borderId;
+}
+
+function setSelectedIdForActiveLibrary(id) {
+  if (activeLibrary === "alerts") state.alertStyleId = id;
+  else if (activeLibrary === "inout") state.inOutEffectId = id;
+  else if (activeLibrary === "glows") state.glowShadowId = id;
+  else if (activeLibrary === "anims") state.animStyleId = id;
+  else state.borderId = id;
+}
+
+function initCustomizer() {
+  try {
+    const saved = localStorage.getItem("sb_shoutout_config_v1");
+    if (saved) Object.assign(state, JSON.parse(saved));
+  } catch (e) {}
+
+  // Bind inputs
+  const bindIds = [
+    "alertDuration", "clipDuration", "volume", "alertPrefix", "alertSubtext",
+    "position", "fontFamily", "playerWidth", "borderThickness", "borderRadius",
+    "alertBorderThickness", "alertBorderRadius", "titleSize", "usernameSize",
+    "gameSize", "avatarSize", "glowSize", "colorMode", "useCustomColors",
+    "useCustomTextColors", "primary", "secondary", "accent", "alertBorderColor",
+    "alertBg1", "alertBg2", "titleColor", "usernameColor", "gameColor",
+    "wsHost", "wsPort"
+  ];
+
+  bindIds.forEach(key => {
+    const el = document.getElementById("cfg-" + key);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = !!state[key];
+    else el.value = state[key];
+
+    el.addEventListener("input", () => {
+      state[key] = el.type === "checkbox" ? el.checked : (el.type === "range" || el.type === "number" ? Number(el.value) : el.value);
+      syncLabelsAndSave();
+    });
+  });
+
+  // Sidebar Tabs
+  document.querySelectorAll(".side-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".side-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.querySelectorAll(".section-box").forEach(sec => {
+        if (tab === "all" || sec.dataset.section === tab) {
+          sec.classList.remove("hidden-tab");
+        } else {
+          sec.classList.add("hidden-tab");
+        }
+      });
+    });
+  });
+
+  // Library Mode Tabs (Borders / Alerts / InOut / Glows / Anims)
+  document.querySelectorAll(".lib-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".lib-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeLibrary = btn.dataset.lib;
+      activeCategory = "All";
+      renderCategoryPills();
+      renderBordersGrid();
+    });
+  });
+
+  // Platform Quick Buttons
+  document.getElementById("btn-plat-twitch").addEventListener("click", () => {
+    applyQuickTheme("twitch-purple", "#9146ff", "#00f0ff", "#ff007f", "#9146ff");
+  });
+  document.getElementById("btn-plat-youtube").addEventListener("click", () => {
+    applyQuickTheme("youtube-red", "#ff0033", "#ff6666", "#ffffff", "#ff0033");
+  });
+  document.getElementById("btn-plat-kick").addEventListener("click", () => {
+    applyQuickTheme("kick-green", "#53fc18", "#00e701", "#ffffff", "#53fc18");
+  });
+
+  renderTwitchColorSwatches();
+  renderCategoryPills();
+  renderBordersGrid();
+  syncLabelsAndSave();
+
+  document.getElementById("search-borders").addEventListener("input", renderBordersGrid);
+
+  document.getElementById("btn-copy-url").addEventListener("click", () => {
+    const urlText = document.getElementById("obs-url-display").textContent;
+    navigator.clipboard.writeText(urlText);
+    const btn = document.getElementById("btn-copy-url");
+    btn.textContent = "Copied OBS URL!";
+    setTimeout(() => (btn.textContent = "Copy OBS Browser Source URL"), 2000);
+  });
+
+  document.getElementById("btn-test-local").addEventListener("click", triggerPreviewSequence);
+  document.getElementById("btn-test-long").addEventListener("click", triggerLongNamePreviewSequence);
+}
+
+function applyQuickTheme(mode, c1, c2, c3, alertBorder) {
+  state.colorMode = mode;
+  state.primary = c1;
+  state.secondary = c2;
+  state.accent = c3;
+  state.alertBorderColor = alertBorder;
+  state.titleColor = c2;
+  state.gameColor = c2;
+
+  document.getElementById("cfg-colorMode").value = mode;
+  document.getElementById("cfg-primary").value = c1;
+  document.getElementById("cfg-secondary").value = c2;
+  document.getElementById("cfg-accent").value = c3;
+  document.getElementById("cfg-alertBorderColor").value = alertBorder;
+  document.getElementById("cfg-titleColor").value = c2;
+  document.getElementById("cfg-gameColor").value = c2;
+  syncLabelsAndSave();
+}
+
+function renderTwitchColorSwatches() {
+  const wrap = document.getElementById("twitch-color-swatches");
+  wrap.innerHTML = "";
+  TWITCH_USER_COLORS.forEach(tc => {
+    const sw = document.createElement("div");
+    sw.className = "color-swatch" + (state.twitchUserColor.toLowerCase() === tc.hex.toLowerCase() ? " active" : "");
+    sw.style.background = tc.hex;
+    sw.title = `${tc.name} (${tc.hex})`;
+    sw.onclick = () => {
+      state.twitchUserColor = tc.hex;
+      state.colorMode = "twitch-user";
+      state.primary = tc.hex;
+      state.alertBorderColor = tc.hex;
+      document.getElementById("cfg-colorMode").value = "twitch-user";
+      document.getElementById("cfg-primary").value = tc.hex;
+      document.getElementById("cfg-alertBorderColor").value = tc.hex;
+      renderTwitchColorSwatches();
+      syncLabelsAndSave();
+    };
+    wrap.appendChild(sw);
+  });
+}
+
+function renderCategoryPills() {
+  const catalog = getActiveCatalog();
+  const cats = ["All", ...new Set(catalog.map(b => b.category))];
+  const wrap = document.getElementById("category-pills");
+  wrap.innerHTML = "";
+  cats.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "cat-pill" + (c === activeCategory ? " active" : "");
+    btn.textContent = c;
+    btn.onclick = () => {
+      activeCategory = c;
+      renderCategoryPills();
+      renderBordersGrid();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function renderBordersGrid() {
+  const query = document.getElementById("search-borders").value.trim().toLowerCase();
+  const grid = document.getElementById("borders-grid");
+  grid.innerHTML = "";
+
+  const catalog = getActiveCatalog();
+  const selectedId = getSelectedIdForActiveLibrary();
+
+  catalog.filter(b => {
+    if (activeCategory !== "All" && b.category !== activeCategory) return false;
+    if (query && !b.name.toLowerCase().includes(query) && !String(b.id).includes(query)) return false;
+    return true;
+  }).forEach(b => {
+    const card = document.createElement("div");
+    card.className = "border-card" + (b.id === selectedId ? " selected" : "");
+
+    let thumbStyle = `border: 3px solid ${b.c1}; box-shadow: inset 0 0 12px ${b.c2}88, 0 0 12px ${b.c1}66; background: linear-gradient(135deg, ${b.c1}25, #090910, ${b.c2}25);`;
+    if (activeLibrary === "alerts") {
+      thumbStyle = `border: 2px solid ${b.c1}; border-radius: 999px; height: 52px; aspect-ratio: auto; margin: 14px 0; box-shadow: 0 0 14px ${b.c1}66; background: linear-gradient(90deg, ${b.c1}33, #0e0e18, ${b.c2}33);`;
+    } else if (activeLibrary === "glows") {
+      thumbStyle = `border: 2px solid ${b.c2}; box-shadow: 0 0 22px ${b.c1}, inset 0 0 18px ${b.c2}; background: radial-gradient(circle, ${b.c1}33, #090910 75%);`;
+    }
+
+    card.innerHTML = `
+      <div class="border-thumb" style="${thumbStyle}">
+        <span>${b.category}</span>
+      </div>
+      <div class="border-meta">
+        <span class="border-name" title="${b.name}">${b.name}</span>
+        <span class="border-id">#${b.id}</span>
+      </div>
+    `;
+    card.onclick = () => {
+      setSelectedIdForActiveLibrary(b.id);
+      renderBordersGrid();
+      syncLabelsAndSave();
+    };
+    grid.appendChild(card);
+  });
+}
+
+function syncLabelsAndSave() {
+  document.getElementById("lbl-alertTime").textContent = state.alertDuration + "s";
+  document.getElementById("lbl-clipTime").textContent = state.clipDuration + "s";
+  document.getElementById("lbl-volume").textContent = state.volume + "%";
+  document.getElementById("lbl-width").textContent = state.playerWidth + "px";
+  document.getElementById("lbl-thick").textContent = state.borderThickness + "px";
+  document.getElementById("lbl-radius").textContent = state.borderRadius + "px";
+  document.getElementById("lbl-alertThick").textContent = state.alertBorderThickness + "px";
+  document.getElementById("lbl-alertRadius").textContent = state.alertBorderRadius + "px";
+  document.getElementById("lbl-titleSize").textContent = state.titleSize + "px";
+  document.getElementById("lbl-usernameSize").textContent = state.usernameSize + "px";
+  document.getElementById("lbl-gameSize").textContent = state.gameSize + "px";
+  document.getElementById("lbl-avatarSize").textContent = state.avatarSize + "px";
+  document.getElementById("lbl-glow").textContent = state.glowSize + "px";
+
+  const bPreset = ALL_BORDERS.find(b => b.id === state.borderId) || ALL_BORDERS[0];
+  const aPreset = ALL_ALERTS.find(b => b.id === state.alertStyleId) || ALL_ALERTS[0];
+  const ioPreset = ALL_INOUT_FX.find(b => b.id === state.inOutEffectId) || ALL_INOUT_FX[0];
+  const gPreset = ALL_GLOWS.find(b => b.id === state.glowShadowId) || ALL_GLOWS[0];
+  const anPreset = ALL_ANIMS.find(b => b.id === state.animStyleId) || ALL_ANIMS[0];
+
+  document.getElementById("selected-border-label").textContent = `#${bPreset.id} ${bPreset.name}`;
+  document.getElementById("selected-alert-label").textContent = `#${aPreset.id}`;
+  document.getElementById("selected-inout-label").textContent = `#${ioPreset.id}`;
+  document.getElementById("selected-glow-label").textContent = `#${gPreset.id}`;
+  document.getElementById("selected-anim-label").textContent = `#${anPreset.id}`;
+
+  localStorage.setItem("sb_shoutout_config_v1", JSON.stringify(state));
+
+  // Build OBS URL with query params
+  const baseUrl = window.location.href.replace(/[^/]*$/, "overlay.html");
+  const params = new URLSearchParams(state);
+  const fullUrl = `${baseUrl}?${params.toString()}`;
+  document.getElementById("obs-url-display").textContent = fullUrl;
+
+  // Update embedded preview iframe
+  const iframe = document.getElementById("preview-iframe");
+  if (iframe && iframe.contentWindow && iframe.contentWindow.applyConfigToDOM) {
+    Object.assign(iframe.contentWindow.config, state);
+    iframe.contentWindow.applyConfigToDOM();
+  }
+}
+
+function triggerPreviewSequence() {
+  const iframe = document.getElementById("preview-iframe");
+  if (iframe && iframe.contentWindow && iframe.contentWindow.enqueueShoutout) {
+    Object.assign(iframe.contentWindow.config, state);
+    iframe.contentWindow.enqueueShoutout({
+      username: "MrrZed0",
+      platform: "twitch",
+      userColor: state.twitchUserColor,
+      avatar: "https://unavatar.io/twitch/twitch",
+      game: "Call of Duty",
+      hasClip: true,
+      clipUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      clipTitle: "Latest Channel Highlight Clip",
+      clipDuration: state.clipDuration
+    });
+  }
+}
+
+function triggerLongNamePreviewSequence() {
+  const iframe = document.getElementById("preview-iframe");
+  if (iframe && iframe.contentWindow && iframe.contentWindow.enqueueShoutout) {
+    Object.assign(iframe.contentWindow.config, state);
+    iframe.contentWindow.enqueueShoutout({
+      username: "TheLegendaryCaptainUltraLongStreamerName_TV",
+      platform: "twitch",
+      userColor: state.twitchUserColor,
+      avatar: "https://unavatar.io/twitch/twitch",
+      game: "Call of Duty: Modern Warfare III - Warzone Tactical Special Edition",
+      hasClip: true,
+      clipUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      clipTitle: "This Clip Title Will Never Be Shown",
+      clipDuration: state.clipDuration
+    });
+  }
+}
+
+initCustomizer();
+</script>
+</body>
+</html>

@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Streamer.bot Shoutout Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Outfit:wght@500;700;900&family=Rajdhani:wght@600;700&family=Bebas+Neue&family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #9146ff;
+    --secondary: #00f0ff;
+    --accent: #ff007f;
+    --alert-border-color: #9146ff;
+    --alert-bg-1: rgba(14, 14, 24, 0.94);
+    --alert-bg-2: rgba(26, 20, 45, 0.94);
+    --title-color: #00f0ff;
+    --username-color: #ffffff;
+    --game-color: #00f0ff;
+    --text-color: #ffffff;
+    --font-main: 'Outfit', sans-serif;
+    --border-thickness: 6px;
+    --border-radius: 18px;
+    --alert-border-thickness: 3px;
+    --alert-border-radius: 50px;
+    --title-size: 15px;
+    --username-size: 40px;
+    --game-size: 14px;
+    --avatar-size: 92px;
+    --glow-size: 22px;
+    --player-width: 720px;
+    --custom-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 0 var(--glow-size) var(--primary);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: var(--font-main);
+    color: var(--text-color);
+    user-select: none;
+  }
+
+  #stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    padding: 48px 48px 64px 48px;
+  }
+  #stage.pos-center { align-items: center; justify-content: center; }
+  #stage.pos-bottom-left { align-items: flex-end; justify-content: flex-start; }
+  #stage.pos-bottom-right { align-items: flex-end; justify-content: flex-end; }
+  #stage.pos-top-left { align-items: flex-start; justify-content: flex-start; }
+  #stage.pos-top-right { align-items: flex-start; justify-content: flex-end; }
+  #stage.pos-top-center { align-items: flex-start; justify-content: center; }
+  #stage.pos-bottom-center { align-items: flex-end; justify-content: center; }
+
+  /* ==================== PHASE 1: ALERT CARD ==================== */
+  #alert-container {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 18px 34px 18px 20px;
+    max-width: calc(100vw - 96px);
+    border-radius: var(--alert-border-radius);
+    background: linear-gradient(135deg, var(--alert-bg-1), var(--alert-bg-2));
+    border: var(--alert-border-thickness) solid var(--alert-border-color);
+    box-shadow: var(--custom-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: var(--fx-in-transform, scale(0.75) translateY(35px));
+    filter: var(--fx-in-filter, blur(0px));
+    transition: opacity var(--fx-dur, 0.48s) var(--fx-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+                transform var(--fx-dur, 0.48s) var(--fx-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+                filter var(--fx-dur, 0.48s) ease;
+    z-index: 20;
+    overflow: hidden;
+  }
+  /* Keep Alert Container strictly anchored inside screen edges for every position */
+  #stage.pos-bottom-left #alert-container { left: 48px; bottom: 56px; }
+  #stage.pos-bottom-right #alert-container { right: 48px; bottom: 56px; }
+  #stage.pos-top-left #alert-container { left: 48px; top: 48px; }
+  #stage.pos-top-right #alert-container { right: 48px; top: 48px; }
+  #stage.pos-top-center #alert-container { top: 48px; }
+  #stage.pos-bottom-center #alert-container { bottom: 56px; }
+
+  #alert-container.active {
+    opacity: 1;
+    transform: scale(1) translate(0, 0) rotate(0deg) skew(0deg);
+    filter: blur(0px);
+  }
+  #alert-container.exit {
+    opacity: 0;
+    transform: var(--fx-out-transform, scale(0.85) translateY(-30px));
+    filter: var(--fx-out-filter, blur(0px));
+  }
+
+  .alert-avatar-wrap {
+    position: relative;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    flex-shrink: 0;
+  }
+  .alert-avatar-ring {
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+    animation: spinSlow 3s linear infinite;
+  }
+  .alert-avatar {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0d0d15;
+    background: #181824;
+    z-index: 2;
+  }
+  .platform-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 13px;
+    color: #fff;
+    border: 2px solid #0d0d15;
+    z-index: 3;
+    text-transform: uppercase;
+  }
+  .platform-twitch { background: #9146ff; }
+  .platform-kick { background: #53fc18; color: #000; }
+  .platform-youtube { background: #ff0033; }
+
+  .alert-text-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+  .alert-label {
+    font-size: var(--title-size);
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--title-color);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .alert-username {
+    font-size: var(--username-size);
+    font-weight: 900;
+    line-height: 1.08;
+    color: var(--username-color);
+    text-shadow: 0 3px 15px rgba(0,0,0,0.7), 0 0 18px var(--primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .alert-sub {
+    font-size: var(--game-size);
+    color: var(--game-color);
+    opacity: 0.92;
+    margin-top: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .alert-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    transform-origin: left center;
+  }
+
+  /* ==================== PHASE 2: CLIP + 120+ BORDER ENGINE ==================== */
+  #clip-wrapper {
+    position: relative;
+    width: var(--player-width);
+    max-width: calc(100vw - 96px);
+    max-height: calc(100vh - 120px);
+    aspect-ratio: 16 / 9;
+    opacity: 0;
+    pointer-events: none;
+    transform: var(--fx-in-transform, scale(0.82) translateY(30px));
+    filter: var(--fx-in-filter, blur(0px));
+    transition: opacity var(--fx-dur, 0.5s) var(--fx-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+                transform var(--fx-dur, 0.5s) var(--fx-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+                filter var(--fx-dur, 0.5s) ease;
+    z-index: 10;
+  }
+  #clip-wrapper.active {
+    opacity: 1;
+    transform: scale(1) translate(0, 0) rotate(0deg) skew(0deg);
+    filter: blur(0px);
+  }
+  #clip-wrapper.exit {
+    opacity: 0;
+    transform: var(--fx-out-transform, scale(0.88) translateY(25px));
+    filter: var(--fx-out-filter, blur(0px));
+  }
+
+  #custom-border-shell {
+    position: absolute;
+    inset: calc(var(--border-thickness) * -1);
+    border-radius: calc(var(--border-radius) + var(--border-thickness));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  #custom-border-decor {
+    position: absolute;
+    inset: calc(var(--border-thickness) * -1.6);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  #video-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: #07070c;
+    z-index: 2;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #clip-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: none;
+    display: block;
+  }
+  #no-clip-fallback {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    padding: 24px;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(145,70,255,0.22), #07070c 75%);
+  }
+  #no-clip-fallback img {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    border: 3px solid var(--secondary);
+    box-shadow: 0 0 20px var(--primary);
+  }
+
+  /* ==================== CLIP BANNER (FIXED SO LONG NAMES NEVER CLIP OFF-SCREEN) ==================== */
+  #clip-banner {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100% - 12px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 22px 8px 10px;
+    border-radius: var(--alert-border-radius);
+    background: linear-gradient(135deg, var(--alert-bg-1), var(--alert-bg-2));
+    border: var(--alert-border-thickness) solid var(--alert-border-color);
+    box-shadow: var(--custom-shadow);
+    z-index: 6;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  #clip-banner img {
+    width: calc(var(--avatar-size) * 0.42);
+    height: calc(var(--avatar-size) * 0.42);
+    min-width: 28px;
+    min-height: 28px;
+    max-width: 58px;
+    max-height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--secondary);
+    flex-shrink: 0;
+  }
+  #clip-banner .banner-name {
+    font-size: calc(var(--username-size) * 0.52);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--username-color);
+    text-shadow: 0 0 10px var(--primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  #clip-banner .banner-game {
+    font-size: var(--game-size);
+    font-weight: 700;
+    color: var(--game-color);
+    text-transform: uppercase;
+    padding-left: 8px;
+    border-left: 1px solid rgba(255,255,255,0.25);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  #clip-timer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    z-index: 5;
+    transform-origin: left center;
+  }
+
+  @keyframes spinSlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 var(--glow-size) var(--b-c1)) brightness(1); }
+    50% { filter: drop-shadow(0 0 calc(var(--glow-size) * 1.7) var(--b-c2)) brightness(1.25); }
+  }
+  @keyframes glitchShake {
+    0%, 92%, 100% { transform: translate(0, 0); }
+    94% { transform: translate(-3px, 2px); }
+    96% { transform: translate(3px, -2px); }
+    98% { transform: translate(-2px, -1px); }
+  }
+  @keyframes scanlineMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 40px; }
+  }
+  @keyframes countdownLinear {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+  @keyframes auraConduit {
+    0%, 100% { box-shadow: var(--custom-shadow), 0 0 calc(var(--glow-size) * 0.8) var(--primary); }
+    50% { box-shadow: var(--custom-shadow), 0 0 calc(var(--glow-size) * 1.8) var(--secondary), inset 0 0 18px var(--accent); }
+  }
+  @keyframes auraHeartbeat {
+    0%, 100% { filter: drop-shadow(0 0 calc(var(--glow-size) * 0.5) var(--primary)); }
+    20% { filter: drop-shadow(0 0 calc(var(--glow-size) * 1.6) var(--secondary)) brightness(1.18); }
+    40% { filter: drop-shadow(0 0 calc(var(--glow-size) * 0.7) var(--primary)); }
+    60% { filter: drop-shadow(0 0 calc(var(--glow-size) * 1.9) var(--accent)) brightness(1.22); }
+  }
+  @keyframes auraChroma {
+    0% { filter: hue-rotate(0deg) drop-shadow(0 0 var(--glow-size) var(--primary)); }
+    100% { filter: hue-rotate(360deg) drop-shadow(0 0 var(--glow-size) var(--secondary)); }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage" class="pos-center">
+  <!-- PHASE 1: SHOUTOUT ALERT -->
+  <div id="alert-container">
+    <div class="alert-avatar-wrap">
+      <div class="alert-avatar-ring"></div>
+      <img id="alert-avatar" class="alert-avatar" src="" alt="Avatar" />
+      <div id="alert-platform" class="platform-badge platform-twitch">TW</div>
+    </div>
+    <div class="alert-text-wrap">
+      <div id="alert-prefix" class="alert-label">SHOUTOUT TO</div>
+      <div id="alert-username" class="alert-username">Username</div>
+      <div id="alert-sub" class="alert-sub">Check out their channel!</div>
+    </div>
+    <div id="alert-progress" class="alert-progress"></div>
+  </div>
+
+  <!-- PHASE 2: CUSTOM BORDER + TWITCH CLIP -->
+  <div id="clip-wrapper">
+    <div id="custom-border-shell"></div>
+    <div id="custom-border-decor"></div>
+    <div id="video-box">
+      <video id="clip-video" playsinline></video>
+      <div id="no-clip-fallback">
+        <img id="fallback-avatar" src="" alt="Avatar" />
+        <div id="fallback-title" style="font-size:26px; font-weight:900;">Username</div>
+        <div id="fallback-msg" style="font-size:14px; color:var(--secondary);">twitch.tv/username</div>
+      </div>
+      <div id="clip-timer-bar"></div>
+    </div>
+    <div id="clip-banner">
+      <img id="banner-avatar" src="" alt="Avatar" />
+      <span id="banner-name" class="banner-name">Username</span>
+      <span id="banner-game" class="banner-game">Just Chatting</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const TWITCH_CHAT_PALETTE = [
+  "#9146FF", "#0000FF", "#FF7F50", "#1E90FF", "#00FF7F",
+  "#9ACD32", "#008000", "#FF4500", "#FF0000", "#DAA520",
+  "#FF69B4", "#5F9EA0", "#2E8B57", "#D2691E", "#8A2BE2", "#B22222"
+];
+
+const BORDER_PALETTES = [
+  { name: "Twitch Neon", c1: "#9146ff", c2: "#00f0ff", c3: "#ff007f" },
+  { name: "Cyberpunk 2077", c1: "#fcee0a", c2: "#00f0ff", c3: "#ff003c" },
+  { name: "Inferno Blaze", c1: "#ff2a00", c2: "#ff9900", c3: "#ffee00" },
+  { name: "Arctic Frost", c1: "#00d2ff", c2: "#3a7bd5", c3: "#e0ffff" },
+  { name: "Toxic Venom", c1: "#53fc18", c2: "#00b09b", c3: "#111111" },
+  { name: "Royal Gold", c1: "#ffd700", c2: "#b8860b", c3: "#fff8dc" },
+  { name: "Blood Moon", c1: "#ff0033", c2: "#660011", c3: "#ff6680" },
+  { name: "Synthwave Sunset", c1: "#ff00aa", c2: "#7700ff", c3: "#00ffff" },
+  { name: "Matrix Code", c1: "#00ff41", c2: "#008f11", c3: "#003b00" },
+  { name: "Obsidian Stealth", c1: "#2c3e50", c2: "#bdc3c7", c3: "#000000" },
+  { name: "Aurora Borealis", c1: "#00ff87", c2: "#60efff", c3: "#7b2cbf" },
+  { name: "Cotton Candy", c1: "#ff9ebb", c2: "#a2d2ff", c3: "#cdb4db" }
+];
+
+const BORDER_ARCHETYPES = [
+  { type: "neon-flow", label: "Neon Flow", cat: "Neon & Cyber" },
+  { type: "double-laser", label: "Dual Laser Rail", cat: "Neon & Cyber" },
+  { type: "hud-tactical", label: "Tactical HUD Brackets", cat: "Gaming & HUD" },
+  { type: "mecha-corners", label: "Mecha Sci-Fi Frame", cat: "Gaming & HUD" },
+  { type: "hazard-stripes", label: "Hazard Caution Frame", cat: "Retro & Pattern" },
+  { type: "plasma-pulse", label: "Plasma Aura Pulse", cat: "Fire & Elemental" },
+  { type: "prism-glass", label: "Crystal Glassmorphic", cat: "Luxury & Glass" },
+  { type: "gold-filigree", label: "Prestige Crown Trim", cat: "Luxury & Glass" },
+  { type: "glitch-cyber", label: "Glitch Overload", cat: "Neon & Cyber" },
+  { type: "retro-arcade", label: "Arcade Pixel Bevel", cat: "Retro & Pattern" }
+];
+
+const ALERT_ARCHETYPES = [
+  { type: "capsule-neon", label: "Neon Capsule Pill" },
+  { type: "cyber-angled", label: "Cyber Angled Blade" },
+  { type: "hud-chassis", label: "Tactical HUD Chassis" },
+  { type: "glass-frost", label: "Frosted Crystal Bar" },
+  { type: "royal-crest", label: "Prestige Gold Trim" },
+  { type: "esports-slant", label: "Esports Pro Slant" },
+  { type: "broadcast-lower", label: "Broadcast Lower Third" },
+  { type: "arcade-bevel", label: "Retro Arcade Cartridge" },
+  { type: "hazard-plate", label: "Industrial Hazard Plate" },
+  { type: "plasma-core", label: "Plasma Energy Core" }
+];
+
+const INOUT_FAMILIES = [
+  "elastic-pop", "cyber-glitch", "flip-3d-x", "flip-3d-y",
+  "slide-skew", "whip-pan", "drop-bounce", "portal-iris",
+  "hyper-zoom", "spiral-spin", "matrix-slice", "smooth-cinema"
+];
+
+const INOUT_DIRS = [
+  "up", "down", "left", "right", "center-fast",
+  "center-overshoot", "diag-tl", "diag-br", "twist-cw", "twist-ccw"
+];
+
+const GLOW_ARCHETYPES = [
+  "neon-bloom", "abyss-drop", "rgb-split", "hard-esports", "ethereal-halo",
+  "inferno-ember", "frost-rim", "laser-crisp", "retro-crt", "volumetric-mist"
+];
+
+const ANIM_ARCHETYPES = [
+  "energy-conduit", "orbit-comet", "plasma-wave", "heartbeat-surge", "rainbow-prism",
+  "cyber-scanline", "dual-polarity", "electric-arc", "tachyon-stream", "supernova-ripple"
+];
+
+function getBorderPreset(id) {
+  const idx = Math.max(0, Math.min(119, (parseInt(id, 10) || 1) - 1));
+  const arch = BORDER_ARCHETYPES[idx % BORDER_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(idx / BORDER_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: idx + 1,
+    name: `${pal.name} ${arch.label}`,
+    category: arch.cat,
+    type: arch.type,
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+}
+
+function getAlertPreset(id) {
+  const idx = Math.max(0, Math.min(119, (parseInt(id, 10) || 1) - 1));
+  const arch = ALERT_ARCHETYPES[idx % ALERT_ARCHETYPES.length];
+  const pal = BORDER_PALETTES[Math.floor(idx / ALERT_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return { id: idx + 1, type: arch.type, c1: pal.c1, c2: pal.c2, c3: pal.c3 };
+}
+
+function getInOutPreset(id) {
+  const idx = Math.max(0, Math.min(119, (parseInt(id, 10) || 1) - 1));
+  return {
+    id: idx + 1,
+    type: INOUT_FAMILIES[idx % INOUT_FAMILIES.length],
+    dir: INOUT_DIRS[Math.floor(idx / INOUT_FAMILIES.length) % INOUT_DIRS.length]
+  };
+}
+
+function getGlowPreset(id) {
+  const idx = Math.max(0, Math.min(119, (parseInt(id, 10) || 1) - 1));
+  const pal = BORDER_PALETTES[Math.floor(idx / GLOW_ARCHETYPES.length) % BORDER_PALETTES.length];
+  return {
+    id: idx + 1,
+    type: GLOW_ARCHETYPES[idx % GLOW_ARCHETYPES.length],
+    c1: pal.c1,
+    c2: pal.c2,
+    c3: pal.c3
+  };
+}
+
+function getAnimPreset(id) {
+  const idx = Math.max(0, Math.min(119, (parseInt(id, 10) || 1) - 1));
+  return {
+    id: idx + 1,
+    type: ANIM_ARCHETYPES[idx % ANIM_ARCHETYPES.length],
+    speedFactor: 0.75 + (Math.floor(idx / ANIM_ARCHETYPES.length) * 0.15)
+  };
+}
+
+function resolveActiveColors(activeData) {
+  const preset = getBorderPreset(config.borderId);
+  let c1 = preset.c1;
+  let c2 = preset.c2;
+  let c3 = preset.c3;
+
+  const mode = config.colorMode || (config.useCustomColors ? "custom" : "preset");
+  const plat = ((activeData && activeData.platform) || "twitch").toLowerCase();
+
+  if (mode === "custom" || config.useCustomColors) {
+    c1 = config.primary || c1;
+    c2 = config.secondary || c2;
+    c3 = config.accent || c3;
+  } else if (mode === "twitch-user") {
+    let uCol = (activeData && (activeData.userColor || activeData.color)) || config.twitchUserColor || "#9146FF";
+    if (activeData && activeData.username && (!activeData.userColor && !activeData.color) && !config.twitchUserColor) {
+      let hash = 0;
+      for (let i = 0; i < activeData.username.length; i++) hash = activeData.username.charCodeAt(i) + ((hash << 5) - hash);
+      uCol = TWITCH_CHAT_PALETTE[Math.abs(hash) % TWITCH_CHAT_PALETTE.length];
+    }
+    c1 = uCol;
+    c2 = "#00f0ff";
+    c3 = "#ffffff";
+  } else if (mode === "platform-auto") {
+    if (plat.includes("youtube")) {
+      c1 = "#ff0033"; c2 = "#ff6666"; c3 = "#ffffff";
+    } else if (plat.includes("kick")) {
+      c1 = "#53fc18"; c2 = "#00e701"; c3 = "#111111";
+    } else {
+      c1 = "#9146ff"; c2 = "#00f0ff"; c3 = "#ff007f";
+    }
+  } else if (mode === "twitch-purple") {
+    c1 = "#9146ff"; c2 = "#00f0ff"; c3 = "#b983ff";
+  } else if (mode === "youtube-red") {
+    c1 = "#ff0033"; c2 = "#ff6666"; c3 = "#ffffff";
+  } else if (mode === "kick-green") {
+    c1 = "#53fc18"; c2 = "#00e701"; c3 = "#ffffff";
+  }
+
+  return { c1, c2, c3 };
+}
+
+function applyBorderStyle(borderId, customColors, activeColors) {
+  const preset = getBorderPreset(borderId);
+  const cols = activeColors || resolveActiveColors();
+  const c1 = cols.c1;
+  const c2 = cols.c2;
+  const c3 = cols.c3;
+
+  const shell = document.getElementById('custom-border-shell');
+  const decor = document.getElementById('custom-border-decor');
+  shell.style.cssText = `--b-c1:${c1}; --b-c2:${c2}; --b-c3:${c3};`;
+  decor.innerHTML = '';
+  decor.style.cssText = '';
+
+  switch (preset.type) {
+    case "neon-flow":
+      shell.style.background = `linear-gradient(120deg, ${c1}, ${c2}, ${c3}, ${c1})`;
+      shell.style.backgroundSize = "300% 300%";
+      shell.style.animation = "gradientShift 3.5s ease infinite, pulseGlow 2.5s ease-in-out infinite";
+      break;
+    case "double-laser":
+      shell.style.background = "transparent";
+      shell.style.border = `3px solid ${c1}`;
+      shell.style.boxShadow = `0 0 var(--glow-size) ${c1}, inset 0 0 15px ${c2}`;
+      decor.style.border = `2px solid ${c2}`;
+      decor.style.borderRadius = `calc(var(--border-radius) + var(--border-thickness) + 6px)`;
+      decor.style.boxShadow = `0 0 12px ${c2}`;
+      break;
+    case "hud-tactical":
+      shell.style.background = `linear-gradient(135deg, ${c1}44, transparent 40%, transparent 60%, ${c2}44)`;
+      shell.style.border = `2px solid ${c1}88`;
+      decor.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 400 225" preserveAspectRatio="none" style="overflow:visible;">
+          <path d="M 0,35 L 0,0 L 45,0" fill="none" stroke="${c1}" stroke-width="5" filter="drop-shadow(0 0 6px ${c1})"/>
+          <path d="M 355,0 L 400,0 L 400,35" fill="none" stroke="${c2}" stroke-width="5" filter="drop-shadow(0 0 6px ${c2})"/>
+          <path d="M 0,190 L 0,225 L 45,225" fill="none" stroke="${c2}" stroke-width="5" filter="drop-shadow(0 0 6px ${c2})"/>
+          <path d="M 355,225 L 400,225 L 400,190" fill="none" stroke="${c1}" stroke-width="5" filter="drop-shadow(0 0 6px ${c1})"/>
+        </svg>`;
+      break;
+    case "mecha-corners":
+      shell.style.background = `linear-gradient(90deg, ${c1}, ${c2})`;
+      shell.style.clipPath = "polygon(0 14px, 14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px))";
+      shell.style.filter = `drop-shadow(0 0 var(--glow-size) ${c1})`;
+      break;
+    case "hazard-stripes":
+      shell.style.background = `repeating-linear-gradient(45deg, ${c1}, ${c1} 14px, ${c3} 14px, ${c3} 28px)`;
+      shell.style.backgroundSize = "40px 40px";
+      shell.style.animation = "scanlineMove 1.5s linear infinite";
+      shell.style.boxShadow = `0 0 var(--glow-size) ${c1}`;
+      break;
+    case "plasma-pulse":
+      shell.style.background = `radial-gradient(circle at 50% 50%, ${c3}, ${c1}, ${c2})`;
+      shell.style.backgroundSize = "200% 200%";
+      shell.style.animation = "gradientShift 2s ease infinite, pulseGlow 1.4s ease-in-out infinite";
+      break;
+    case "prism-glass":
+      shell.style.background = `linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.08))`;
+      shell.style.border = `2px solid rgba(255,255,255,0.6)`;
+      shell.style.backdropFilter = "blur(12px)";
+      shell.style.boxShadow = `0 12px 35px rgba(0,0,0,0.6), 0 0 var(--glow-size) ${c1}`;
+      break;
+    case "gold-filigree":
+      shell.style.background = `linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1})`;
+      shell.style.boxShadow = `0 0 var(--glow-size) ${c1}`;
+      decor.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 400 225" preserveAspectRatio="none" style="overflow:visible;">
+          <polygon points="200,-8 210,4 200,12 190,4" fill="${c3}" stroke="${c1}" stroke-width="2"/>
+          <polygon points="0,0 16,0 0,16" fill="${c1}"/>
+          <polygon points="400,0 384,0 400,16" fill="${c1}"/>
+          <polygon points="0,225 16,225 0,209" fill="${c1}"/>
+          <polygon points="400,225 384,225 400,209" fill="${c1}"/>
+        </svg>`;
+      break;
+    case "glitch-cyber":
+      shell.style.background = `linear-gradient(90deg, ${c1}, ${c2}, ${c3})`;
+      shell.style.boxShadow = `-4px 0 0 ${c2}, 4px 0 0 ${c3}, 0 0 var(--glow-size) ${c1}`;
+      shell.style.animation = "glitchShake 2.2s infinite";
+      break;
+    case "retro-arcade":
+      shell.style.background = c1;
+      shell.style.border = `4px dashed ${c2}`;
+      shell.style.boxShadow = `0 0 0 4px ${c3}, 0 0 var(--glow-size) ${c1}`;
+      break;
+  }
+}
+
+function applyAlertBannerStyle(alertStyleId, activeColors) {
+  const preset = getAlertPreset(alertStyleId);
+  const alertEl = document.getElementById("alert-container");
+  const bannerEl = document.getElementById("clip-banner");
+
+  const useCustom = config.useCustomTextColors || config.colorMode === "custom" || config.useCustomColors;
+  const bCol = useCustom ? (config.alertBorderColor || activeColors.c1) : (config.colorMode !== "preset" ? activeColors.c1 : preset.c1);
+  const c2 = useCustom ? (config.secondary || activeColors.c2) : preset.c2;
+
+  [alertEl, bannerEl].forEach(el => {
+    if (!el) return;
+    el.style.clipPath = "none";
+    el.style.borderStyle = "solid";
+    el.style.borderWidth = `var(--alert-border-thickness)`;
+    el.style.borderColor = bCol;
+    el.style.borderRadius = `var(--alert-border-radius)`;
+
+    switch (preset.type) {
+      case "cyber-angled":
+        el.style.borderRadius = "6px";
+        el.style.clipPath = "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)";
+        break;
+      case "hud-chassis":
+        el.style.borderRadius = "8px";
+        el.style.borderLeftWidth = `calc(var(--alert-border-thickness) * 2.4)`;
+        el.style.borderRightWidth = `calc(var(--alert-border-thickness) * 2.4)`;
+        break;
+      case "glass-frost":
+        el.style.backdropFilter = "blur(16px)";
+        el.style.background = `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(14,14,24,0.88))`;
+        break;
+      case "royal-crest":
+        el.style.borderStyle = "double";
+        el.style.borderWidth = `calc(var(--alert-border-thickness) * 1.5)`;
+        break;
+      case "esports-slant":
+        el.style.borderRadius = "10px";
+        el.style.clipPath = "polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)";
+        break;
+      case "broadcast-lower":
+        el.style.borderRadius = "4px 20px 20px 4px";
+        el.style.borderLeft = `8px solid ${c2}`;
+        break;
+      case "arcade-bevel":
+        el.style.borderRadius = "0px";
+        el.style.borderStyle = "dashed";
+        break;
+      case "hazard-plate":
+        el.style.background = `linear-gradient(135deg, rgba(14,14,24,0.96), rgba(26,20,45,0.95)), repeating-linear-gradient(45deg, ${bCol}22, ${bCol}22 10px, transparent 10px, transparent 20px)`;
+        break;
+      case "plasma-core":
+        el.style.background = `radial-gradient(circle at 20% 50%, ${bCol}44, rgba(12,12,22,0.95) 75%)`;
+        break;
+    }
+  });
+}
+
+function applyInOutEffects(inOutId) {
+  const fx = getInOutPreset(inOutId);
+  const root = document.documentElement;
+
+  let dx = "0px", dy = "35px";
+  if (fx.dir === "down") dy = "-45px";
+  else if (fx.dir === "left") { dx = "-65px"; dy = "0px"; }
+  else if (fx.dir === "right") { dx = "65px"; dy = "0px"; }
+  else if (fx.dir === "diag-tl") { dx = "-45px"; dy = "-45px"; }
+  else if (fx.dir === "diag-br") { dx = "45px"; dy = "45px"; }
+
+  let inTransform = `scale(0.78) translate(${dx}, ${dy})`;
+  let outTransform = `scale(0.84) translate(${dx}, calc(${dy} * -0.8))`;
+  let inFilter = "blur(0px)";
+  let outFilter = "blur(0px)";
+  let ease = "cubic-bezier(0.16, 1, 0.3, 1)";
+  let dur = "0.48s";
+
+  switch (fx.type) {
+    case "elastic-pop":
+      ease = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+      inTransform = `scale(0.45) translate(${dx}, ${dy})`;
+      break;
+    case "cyber-glitch":
+      inTransform = `scale(1.08) skewX(18deg) translate(${dx}, ${dy})`;
+      outTransform = `scale(0.9) skewX(-18deg) translate(${dx}, ${dy})`;
+      inFilter = "hue-rotate(90deg) blur(4px)";
+      outFilter = "hue-rotate(-90deg) blur(4px)";
+      break;
+    case "flip-3d-x":
+      inTransform = `perspective(900px) rotateX(75deg) translate(${dx}, ${dy})`;
+      outTransform = `perspective(900px) rotateX(-65deg) scale(0.88)`;
+      break;
+    case "flip-3d-y":
+      inTransform = `perspective(900px) rotateY(75deg) translate(${dx}, ${dy})`;
+      outTransform = `perspective(900px) rotateY(-65deg) scale(0.88)`;
+      break;
+    case "slide-skew":
+      inTransform = `translate(${dx}, ${dy}) skewX(-16deg) scale(0.92)`;
+      outTransform = `translate(calc(${dx} * -1), ${dy}) skewX(16deg) scale(0.92)`;
+      break;
+    case "whip-pan":
+      dur = "0.36s";
+      inTransform = `translate(${dx}, ${dy}) scaleX(1.25)`;
+      inFilter = "blur(8px)";
+      outFilter = "blur(8px)";
+      break;
+    case "drop-bounce":
+      ease = "cubic-bezier(0.22, 1.4, 0.36, 1)";
+      inTransform = `translateY(-80px) scale(0.85)`;
+      break;
+    case "portal-iris":
+      inTransform = `scale(0.15) rotate(12deg)`;
+      outTransform = `scale(0.1) rotate(-12deg)`;
+      inFilter = "brightness(2) blur(6px)";
+      break;
+    case "hyper-zoom":
+      inTransform = `scale(1.45) translate(${dx}, ${dy})`;
+      outTransform = `scale(0.6) translate(${dx}, ${dy})`;
+      inFilter = "blur(6px)";
+      break;
+    case "spiral-spin":
+      ease = "cubic-bezier(0.25, 1.3, 0.5, 1)";
+      inTransform = `scale(0.4) rotate(${fx.dir === "twist-ccw" ? "-35deg" : "35deg"})`;
+      outTransform = `scale(0.5) rotate(${fx.dir === "twist-ccw" ? "25deg" : "-25deg"})`;
+      break;
+    case "matrix-slice":
+      inTransform = `scaleY(0.08) scaleX(1.15)`;
+      outTransform = `scaleY(0.05) scaleX(1.15)`;
+      break;
+    case "smooth-cinema":
+      dur = "0.6s";
+      inTransform = `translateY(20px) scale(0.96)`;
+      inFilter = "blur(4px)";
+      outFilter = "blur(4px)";
+      break;
+  }
+
+  root.style.setProperty("--fx-in-transform", inTransform);
+  root.style.setProperty("--fx-out-transform", outTransform);
+  root.style.setProperty("--fx-in-filter", inFilter);
+  root.style.setProperty("--fx-out-filter", outFilter);
+  root.style.setProperty("--fx-ease", ease);
+  root.style.setProperty("--fx-dur", dur);
+}
+
+function applyGlowAndAnimations(glowId, animId, activeColors) {
+  const gPreset = getGlowPreset(glowId);
+  const aPreset = getAnimPreset(animId);
+  const root = document.documentElement;
+
+  const c1 = activeColors.c1;
+  const c2 = activeColors.c2;
+  const c3 = activeColors.c3;
+
+  let shadowCss = `0 14px 40px rgba(0,0,0,0.65), 0 0 var(--glow-size) ${c1}`;
+  switch (gPreset.type) {
+    case "neon-bloom":
+      shadowCss = `0 10px 35px rgba(0,0,0,0.7), 0 0 var(--glow-size) ${c1}, 0 0 calc(var(--glow-size) * 1.8) ${c2}88`;
+      break;
+    case "abyss-drop":
+      shadowCss = `0 22px 55px rgba(0,0,0,0.95), 0 0 calc(var(--glow-size) * 0.7) ${c1}`;
+      break;
+    case "rgb-split":
+      shadowCss = `-5px -3px 0 ${c2}, 5px 3px 0 ${c3}, 0 14px 35px rgba(0,0,0,0.8), 0 0 var(--glow-size) ${c1}`;
+      break;
+    case "hard-esports":
+      shadowCss = `8px 8px 0px ${c1}, 0 12px 30px rgba(0,0,0,0.85)`;
+      break;
+    case "ethereal-halo":
+      shadowCss = `0 0 calc(var(--glow-size) * 1.4) #ffffff88, 0 0 calc(var(--glow-size) * 2.2) ${c1}, 0 12px 35px rgba(0,0,0,0.7)`;
+      break;
+    case "inferno-ember":
+      shadowCss = `0 -4px calc(var(--glow-size) * 1.5) ${c1}, 0 8px calc(var(--glow-size) * 1.8) ${c2}, 0 16px 40px rgba(0,0,0,0.85)`;
+      break;
+    case "frost-rim":
+      shadowCss = `inset 0 0 14px ${c2}88, 0 0 var(--glow-size) ${c1}, 0 14px 35px rgba(0,0,0,0.75)`;
+      break;
+    case "laser-crisp":
+      shadowCss = `0 0 0 2px ${c2}, 0 0 var(--glow-size) ${c1}, 0 14px 35px rgba(0,0,0,0.8)`;
+      break;
+    case "retro-crt":
+      shadowCss = `0 0 0 4px rgba(0,0,0,0.9), 0 0 calc(var(--glow-size) * 1.5) ${c1}`;
+      break;
+    case "volumetric-mist":
+      shadowCss = `0 20px 60px ${c1}55, 0 0 calc(var(--glow-size) * 2) ${c2}66, 0 12px 30px rgba(0,0,0,0.8)`;
+      break;
+  }
+  root.style.setProperty("--custom-shadow", shadowCss);
+
+  // Synchronized Border-to-Banner Animations
+  const alertEl = document.getElementById("alert-container");
+  const bannerEl = document.getElementById("clip-banner");
+  const dur = (2.4 / aPreset.speedFactor).toFixed(2) + "s";
+
+  let animCss = `auraConduit ${dur} ease-in-out infinite`;
+  if (aPreset.type === "heartbeat-surge" || aPreset.type === "supernova-ripple") {
+    animCss = `auraHeartbeat ${dur} ease-in-out infinite`;
+  } else if (aPreset.type === "rainbow-prism") {
+    animCss = `auraChroma ${dur} linear infinite`;
+  } else if (aPreset.type === "electric-arc") {
+    animCss = `glitchShake ${dur} infinite, auraConduit ${dur} ease-in-out infinite`;
+  }
+
+  if (alertEl) alertEl.style.animation = animCss;
+  if (bannerEl) bannerEl.style.animation = animCss;
+}
+
+// Automatically shrinks font size slightly if a username or game name is extra long so it never cuts off
+function fitOverlayText() {
+  const alertUser = document.getElementById("alert-username");
+  const bannerName = document.getElementById("banner-name");
+  const bannerGame = document.getElementById("banner-game");
+
+  const baseUserSize = Number(config.usernameSize) || 40;
+  const baseGameSize = Number(config.gameSize) || 14;
+
+  if (alertUser) {
+    const len = (alertUser.textContent || "").length;
+    const scale = len > 26 ? Math.max(0.55, 24 / len) : (len > 18 ? 0.78 : 1);
+    alertUser.style.fontSize = Math.round(baseUserSize * scale) + "px";
+  }
+
+  if (bannerName && bannerGame) {
+    const totalChars = (bannerName.textContent || "").length + (bannerGame.textContent || "").length;
+    const scale = totalChars > 42 ? Math.max(0.62, 38 / totalChars) : (totalChars > 28 ? 0.82 : 1);
+    bannerName.style.fontSize = Math.round(baseUserSize * 0.52 * scale) + "px";
+    bannerGame.style.fontSize = Math.round(baseGameSize * scale) + "px";
+  }
+}
+
+let config = {
+  wsHost: "127.0.0.1",
+  wsPort: "8080",
+  alertDuration: 10,
+  clipDuration: 30,
+  borderId: 1,
+  alertStyleId: 1,
+  inOutEffectId: 1,
+  glowShadowId: 1,
+  animStyleId: 1,
+  colorMode: "preset",
+  twitchUserColor: "#9146FF",
+  useCustomColors: false,
+  useCustomTextColors: false,
+  primary: "#9146ff",
+  secondary: "#00f0ff",
+  accent: "#ff007f",
+  alertBorderColor: "#9146ff",
+  alertBg1: "#0e0e18",
+  alertBg2: "#1a142d",
+  titleColor: "#00f0ff",
+  usernameColor: "#ffffff",
+  gameColor: "#00f0ff",
+  textColor: "#ffffff",
+  fontFamily: "'Outfit', sans-serif",
+  alertPrefix: "SHOUTOUT TO",
+  alertSubtext: "Go drop them a follow!",
+  borderThickness: 6,
+  borderRadius: 18,
+  alertBorderThickness: 3,
+  alertBorderRadius: 50,
+  titleSize: 15,
+  usernameSize: 40,
+  gameSize: 14,
+  avatarSize: 92,
+  glowSize: 22,
+  playerWidth: 720,
+  position: "pos-center",
+  volume: 80,
+  showBanner: true
+};
+
+let lastTriggerData = null;
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem("sb_shoutout_config_v1");
+    if (saved) Object.assign(config, JSON.parse(saved));
+  } catch (e) {}
+
+  const params = new URLSearchParams(window.location.search);
+  for (const [k, v] of params.entries()) {
+    if (k in config) {
+      if (typeof config[k] === "number") config[k] = Number(v);
+      else if (typeof config[k] === "boolean") config[k] = (v === "true" || v === "1");
+      else config[k] = v;
+    }
+  }
+  applyConfigToDOM();
+}
+
+function applyConfigToDOM(activeData) {
+  const dataRef = activeData || lastTriggerData;
+  const activeColors = resolveActiveColors(dataRef);
+  const pColor = activeColors.c1;
+  const sColor = activeColors.c2;
+  const aColor = activeColors.c3;
+
+  const useTextCustom = config.useCustomTextColors || config.colorMode !== "preset";
+  const tColor = useTextCustom ? (config.titleColor || sColor) : sColor;
+  const uColor = useTextCustom ? (config.usernameColor || "#ffffff") : "#ffffff";
+  const gColor = useTextCustom ? (config.gameColor || sColor) : sColor;
+  const abColor = (config.useCustomTextColors || config.colorMode === "custom") ? (config.alertBorderColor || pColor) : pColor;
+
+  const root = document.documentElement;
+  root.style.setProperty("--primary", pColor);
+  root.style.setProperty("--secondary", sColor);
+  root.style.setProperty("--accent", aColor);
+  root.style.setProperty("--alert-border-color", abColor);
+  root.style.setProperty("--alert-bg-1", config.alertBg1 || "rgba(14, 14, 24, 0.94)");
+  root.style.setProperty("--alert-bg-2", config.alertBg2 || "rgba(26, 20, 45, 0.94)");
+  root.style.setProperty("--title-color", tColor);
+  root.style.setProperty("--username-color", uColor);
+  root.style.setProperty("--game-color", gColor);
+  root.style.setProperty("--text-color", config.textColor || "#ffffff");
+  root.style.setProperty("--font-main", config.fontFamily);
+  root.style.setProperty("--border-thickness", config.borderThickness + "px");
+  root.style.setProperty("--border-radius", config.borderRadius + "px");
+  root.style.setProperty("--alert-border-thickness", (config.alertBorderThickness ?? 3) + "px");
+  root.style.setProperty("--alert-border-radius", (config.alertBorderRadius ?? 50) + "px");
+  root.style.setProperty("--title-size", (config.titleSize || 15) + "px");
+  root.style.setProperty("--username-size", (config.usernameSize || 40) + "px");
+  root.style.setProperty("--game-size", (config.gameSize || 14) + "px");
+  root.style.setProperty("--avatar-size", (config.avatarSize || 92) + "px");
+  root.style.setProperty("--glow-size", config.glowSize + "px");
+  root.style.setProperty("--player-width", config.playerWidth + "px");
+
+  const stage = document.getElementById("stage");
+  stage.className = config.position || "pos-center";
+
+  document.getElementById("alert-prefix").textContent = config.alertPrefix || "SHOUTOUT TO";
+  document.getElementById("clip-banner").style.display = config.showBanner ? "flex" : "none";
+
+  applyBorderStyle(config.borderId, config, activeColors);
+  applyAlertBannerStyle(config.alertStyleId, activeColors);
+  applyInOutEffects(config.inOutEffectId);
+  applyGlowAndAnimations(config.glowShadowId, config.animStyleId, activeColors);
+  fitOverlayText();
+}
+
+// ============================================================================
+// TWITCH PERSISTED GQL RESOLVER (Unlocks direct .mp4 URL from clipSlug)
+// ============================================================================
+async function resolveClipMp4InBrowser(slug) {
+  if (!slug) return "";
+  try {
+    const gqlPayload = [{
+      operationName: "VideoAccessToken_Clip",
+      variables: { slug: slug },
+      extensions: {
+        persistedQuery: {
+          version: 1,
+          sha256Hash: "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11"
+        }
+      }
+    }];
+
+    const res = await fetch("https://gql.twitch.tv/gql", {
+      method: "POST",
+      headers: {
+        "Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(gqlPayload)
+    });
+
+    const json = await res.json();
+    const root = Array.isArray(json) ? json[0] : json;
+    const clip = root && root.data && root.data.clip;
+    if (!clip) return "";
+
+    const qualities = clip.videoQualities;
+    const sig = clip.playbackAccessToken && clip.playbackAccessToken.signature;
+    const token = clip.playbackAccessToken && clip.playbackAccessToken.value;
+
+    if (qualities && qualities.length > 0 && sig && token) {
+      return `${qualities[0].sourceURL}?sig=${sig}&token=${encodeURIComponent(token)}`;
+    }
+  } catch (err) {
+    console.warn("Twitch GQL clip resolver error:", err);
+  }
+  return "";
+}
+
+// ============================================================================
+// SHOUTOUT SEQUENCER: PHASE 1 (10s ALERT) -> PHASE 2 (BORDER + CLIP)
+// ============================================================================
+let activeTimeouts = [];
+let isPlaying = false;
+let queue = [];
+
+function clearTimers() {
+  activeTimeouts.forEach(t => clearTimeout(t));
+  activeTimeouts = [];
+}
+
+function enqueueShoutout(data) {
+  queue.push(data);
+  if (!isPlaying) processNextShoutout();
+}
+
+function processNextShoutout() {
+  if (queue.length === 0) {
+    isPlaying = false;
+    return;
+  }
+  isPlaying = true;
+  const data = queue.shift();
+  runShoutoutSequence(data);
+}
+
+function runShoutoutSequence(data) {
+  clearTimers();
+  lastTriggerData = data;
+  applyConfigToDOM(data);
+
+  const alertEl = document.getElementById("alert-container");
+  const clipWrap = document.getElementById("clip-wrapper");
+  const videoEl = document.getElementById("clip-video");
+  const fallbackEl = document.getElementById("no-clip-fallback");
+  const alertProg = document.getElementById("alert-progress");
+
+  // Reset states
+  alertEl.classList.remove("active", "exit");
+  clipWrap.classList.remove("active", "exit");
+  videoEl.pause();
+  videoEl.removeAttribute("src");
+  fallbackEl.style.display = "none";
+  videoEl.style.display = "block";
+
+  // Pre-resolve the Twitch Clip MP4 while the 10-second alert is showing!
+  data._resolvedMp4Promise = (async () => {
+    if (data.clipUrl && data.clipUrl.startsWith("http")) return data.clipUrl;
+    if (data.clipSlug) return await resolveClipMp4InBrowser(data.clipSlug);
+    return "";
+  })();
+
+  const username = data.username || "Streamer";
+  const avatar = data.avatar || `https://unavatar.io/twitch/${encodeURIComponent(username)}`;
+  const platform = (data.platform || "twitch").toLowerCase();
+
+  document.getElementById("alert-avatar").src = avatar;
+  document.getElementById("banner-avatar").src = avatar;
+  document.getElementById("fallback-avatar").src = avatar;
+  document.getElementById("alert-username").textContent = username;
+  document.getElementById("banner-name").textContent = username;
+  document.getElementById("fallback-title").textContent = username;
+
+  const subText = data.game ? `Last playing: ${data.game}` : (config.alertSubtext || "Check out their stream!");
+  document.getElementById("alert-sub").textContent = subText;
+
+  // Never show data.clipTitle on the banner; only show game or fallback text
+  const bannerGameEl = document.getElementById("banner-game");
+  bannerGameEl.textContent = data.game || "Featured Streamer";
+
+  fitOverlayText();
+
+  const platBadge = document.getElementById("alert-platform");
+  platBadge.className = "platform-badge";
+  if (platform.includes("kick")) {
+    platBadge.classList.add("platform-kick");
+    platBadge.textContent = "K";
+  } else if (platform.includes("youtube")) {
+    platBadge.classList.add("platform-youtube");
+    platBadge.textContent = "YT";
+  } else {
+    platBadge.classList.add("platform-twitch");
+    platBadge.textContent = "TW";
+  }
+
+  // ---------------- PHASE 1: SHOW ALERT FIRST ----------------
+  const alertMs = Math.max(1, Number(config.alertDuration) || 10) * 1000;
+  alertProg.style.animation = "none";
+  void alertProg.offsetWidth;
+  alertProg.style.animation = `countdownLinear ${alertMs}ms linear forwards`;
+
+  requestAnimationFrame(() => {
+    alertEl.classList.add("active");
+  });
+
+  // Hide Alert after alertDuration, then start Phase 2
+  activeTimeouts.push(setTimeout(() => {
+    alertEl.classList.remove("active");
+    alertEl.classList.add("exit");
+
+    activeTimeouts.push(setTimeout(() => {
+      alertEl.classList.remove("exit");
+      startClipPhase(data);
+    }, 450));
+  }, alertMs));
+}
+
+async function startClipPhase(data) {
+  const clipWrap = document.getElementById("clip-wrapper");
+  const videoEl = document.getElementById("clip-video");
+  const fallbackEl = document.getElementById("no-clip-fallback");
+  const clipProg = document.getElementById("clip-timer-bar");
+
+  let mp4Url = "";
+  if (data._resolvedMp4Promise) {
+    mp4Url = await data._resolvedMp4Promise;
+  }
+
+  const maxClipSec = Math.max(3, Number(config.clipDuration) || 30);
+  const actualClipSec = data.clipDuration ? Math.min(maxClipSec, Number(data.clipDuration)) : maxClipSec;
+  const playMs = (mp4Url ? actualClipSec : 8) * 1000;
+
+  clipProg.style.animation = "none";
+  void clipProg.offsetWidth;
+  clipProg.style.animation = `countdownLinear ${playMs}ms linear forwards`;
+
+  clipWrap.classList.add("active");
+
+  let finished = false;
+  const finishClip = () => {
+    if (finished) return;
+    finished = true;
+    clipWrap.classList.remove("active");
+    clipWrap.classList.add("exit");
+    videoEl.pause();
+
+    activeTimeouts.push(setTimeout(() => {
+      clipWrap.classList.remove("exit");
+      videoEl.removeAttribute("src");
+      processNextShoutout();
+    }, 500));
+  };
+
+  if (mp4Url) {
+    fallbackEl.style.display = "none";
+    videoEl.style.display = "block";
+    videoEl.src = mp4Url;
+    videoEl.muted = false;
+    videoEl.volume = Math.max(0, Math.min(1, (Number(config.volume) || 80) / 100));
+    videoEl.onended = finishClip;
+    videoEl.onerror = () => {
+      // Show channel card inside the border if the video stream errors
+      videoEl.style.display = "none";
+      fallbackEl.style.display = "flex";
+      document.getElementById("fallback-msg").textContent = data.game ? `Streaming ${data.game}` : `twitch.tv/${data.login || data.username}`;
+    };
+
+    videoEl.play().catch(() => {
+      // Fallback to muted autoplay if OBS/browser blocks unmuted audio
+      videoEl.muted = true;
+      videoEl.play().catch(finishClip);
+    });
+  } else {
+    // User has 0 clips on Twitch: still show the Custom Border with their channel card
+    videoEl.style.display = "none";
+    fallbackEl.style.display = "flex";
+    document.getElementById("fallback-msg").textContent = data.game
+      ? `Last seen playing ${data.game} (No Clips Found)`
+      : `No Twitch clips found for ${data.username}`;
+  }
+
+  activeTimeouts.push(setTimeout(finishClip, playMs));
+}
+
+// ============================================================================
+// STREAMER.BOT WEBSOCKET CLIENT
+// ============================================================================
+let ws = null;
+function connectStreamerBot() {
+  const url = `ws://${config.wsHost}:${config.wsPort}/`;
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      request: "Subscribe",
+      id: "custom-shoutout-overlay-sub",
+      events: {
+        General: ["Custom"]
+      }
+    }));
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      const payload = msg.data || msg;
+
+      if (payload && payload.event === "CustomShoutoutConfigUpdate" && payload.config) {
+        Object.assign(config, payload.config);
+        localStorage.setItem("sb_shoutout_config_v1", JSON.stringify(config));
+        applyConfigToDOM();
+      }
+
+      if (payload && payload.event === "CustomShoutoutTrigger") {
+        enqueueShoutout(payload);
+      }
+    } catch (e) {}
+  };
+
+  ws.onclose = () => {
+    setTimeout(connectStreamerBot, 3000);
+  };
+}
+
+window.addEventListener("storage", (e) => {
+  if (e.key === "sb_shoutout_config_v1" && e.newValue) {
+    try {
+      Object.assign(config, JSON.parse(e.newValue));
+      applyConfigToDOM();
+    } catch (err) {}
+  }
+});
+
+loadConfig();
+connectStreamerBot();
+</script>
+</body>
+</html>
