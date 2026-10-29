@@ -7,6 +7,9 @@
 
 A two-phase **Shoutout Alert & Auto-Playing Twitch Clip Overlay** built specifically for **Streamer.bot** and **OBS Studio**. Designed with a visual **Customizer Studio** featuring **120+ procedural animated borders**, real-time previewing, and zero manual API token configuration.
 
+![https://github.com/MrrZed0/Alerts_All_Platforms/blob/main/Preview.png](https://github.com/MrrZed0/Custom-Shoutout-Player-Overlay/blob/main/1.png?raw=true)
+![https://github.com/MrrZed0/Alerts_All_Platforms/blob/main/Preview.png](https://github.com/MrrZed0/Custom-Shoutout-Player-Overlay/blob/main/2.png?raw=true)
+
 ---
 
 ## ✨ Features
