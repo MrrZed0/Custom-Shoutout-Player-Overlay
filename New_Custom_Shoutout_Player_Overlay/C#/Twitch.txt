@@ -1,0 +1,248 @@
+using System;
+using System.Collections;
+using System.Reflection;
+
+public class CPHInline
+{
+    public bool Execute()
+    {
+        string platform = "twitch";
+        string userTypeArg;
+        if (CPH.TryGetArg("userType", out userTypeArg) && !string.IsNullOrEmpty(userTypeArg))
+            platform = userTypeArg.Trim().ToLower();
+
+        string display = "";
+        string login = "";
+        string avatar = "";
+        string game = "";
+
+        // Priority 1: Target user (if using Get Target Info or !so @user)
+        if (CPH.TryGetArg("targetUserName", out string tLogin) && !string.IsNullOrEmpty(tLogin))
+            login = tLogin.Trim().TrimStart('@').ToLower();
+        if (CPH.TryGetArg("targetUser", out string tDisp) && !string.IsNullOrEmpty(tDisp))
+            display = tDisp.Trim().TrimStart('@');
+
+        // Priority 2: Command input (!so @username)
+        if (string.IsNullOrEmpty(login) && CPH.TryGetArg("input0", out string in0) && !string.IsNullOrEmpty(in0))
+        {
+            string cleaned = in0.Trim().TrimStart('@');
+            if (!string.IsNullOrEmpty(cleaned))
+            {
+                display = cleaned;
+                login = cleaned.ToLower();
+            }
+        }
+
+        // Priority 3: The user who triggered the alert/command/event
+        if (string.IsNullOrEmpty(display)) CPH.TryGetArg("user", out display);
+        if (string.IsNullOrEmpty(login)) CPH.TryGetArg("userName", out login);
+
+        // Priority 4: Fallback to Broadcaster if clicking "Test" inside Streamer.bot
+        if (string.IsNullOrEmpty(display)) CPH.TryGetArg("broadcastUser", out display);
+        if (string.IsNullOrEmpty(login)) CPH.TryGetArg("broadcastUserName", out login);
+
+        if (string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(display))
+            login = display.ToLower().Replace(" ", "");
+
+        if (string.IsNullOrEmpty(login))
+        {
+            CPH.LogWarn("[CustomShoutout] No username found in trigger arguments.");
+            return false;
+        }
+
+        string[] avatarKeys = new string[] { "targetUserProfileImageUrl", "userProfileUrl", "profileImageUrl", "userProfileImageUrl", "broadcastUserProfileImageUrl" };
+        for (int i = 0; i < avatarKeys.Length; i++)
+        {
+            if (CPH.TryGetArg(avatarKeys[i], out string tmp) && !string.IsNullOrEmpty(tmp) && tmp.StartsWith("http"))
+            {
+                avatar = tmp;
+                break;
+            }
+        }
+
+        // 1. Grab User Info & Avatar from Streamer.bot
+        try
+        {
+            MethodInfo uMethod = CPH.GetType().GetMethod("TwitchGetExtendedUserInfoByLogin", new Type[] { typeof(string) });
+            if (uMethod != null)
+            {
+                object uObj = uMethod.Invoke(CPH, new object[] { login });
+                if (uObj != null)
+                {
+                    Type uType = uObj.GetType();
+                    PropertyInfo pName = uType.GetProperty("UserName");
+                    PropertyInfo pImg = uType.GetProperty("ProfileImageUrl");
+                    PropertyInfo pGame = uType.GetProperty("Game");
+
+                    if (pName != null)
+                    {
+                        object v = pName.GetValue(uObj, null);
+                        if (v != null && !string.IsNullOrEmpty(v.ToString())) display = v.ToString();
+                    }
+                    if (pImg != null)
+                    {
+                        object v = pImg.GetValue(uObj, null);
+                        if (v != null && !string.IsNullOrEmpty(v.ToString())) avatar = v.ToString();
+                    }
+                    if (pGame != null)
+                    {
+                        object v = pGame.GetValue(uObj, null);
+                        if (v != null) game = v.ToString();
+                    }
+                }
+            }
+        }
+        catch { }
+
+        if (string.IsNullOrEmpty(avatar))
+        {
+            string safeLogin = login.Replace(" ", "").Replace("\"", "");
+            if (platform.Contains("kick"))
+                avatar = "https://unavatar.io/kick/" + safeLogin;
+            else if (platform.Contains("youtube"))
+                avatar = "https://unavatar.io/youtube/" + safeLogin;
+            else
+                avatar = "https://unavatar.io/twitch/" + safeLogin;
+        }
+
+        // 2. Grab Latest Twitch Clip from Streamer.bot (supports 3-param, 2-param, and 1-param overloads)
+        string clipUrl = "";
+        string clipSlug = "";
+        string clipTitle = "";
+        string clipThumb = "";
+        double clipDuration = 30;
+
+        try
+        {
+            MethodInfo[] allMethods = CPH.GetType().GetMethods();
+            IList clips = null;
+
+            for (int i = 0; i < allMethods.Length; i++)
+            {
+                if (allMethods[i].Name != "GetClipsForUser") continue;
+                ParameterInfo[] ps = allMethods[i].GetParameters();
+
+                // Streamer.bot standard: GetClipsForUser(string userName, int count, bool? isFeatured)
+                if (ps.Length == 3 && ps[0].ParameterType == typeof(string) && ps[1].ParameterType == typeof(int))
+                {
+                    clips = allMethods[i].Invoke(CPH, new object[] { login, 100, null }) as IList;
+                    if (clips == null || clips.Count == 0)
+                        clips = allMethods[i].Invoke(CPH, new object[] { login, 100, false }) as IList;
+                    break;
+                }
+            }
+
+            // Fallback to 2-param or 1-param if needed
+            if (clips == null || clips.Count == 0)
+            {
+                for (int i = 0; i < allMethods.Length; i++)
+                {
+                    if (allMethods[i].Name != "GetClipsForUser") continue;
+                    ParameterInfo[] ps = allMethods[i].GetParameters();
+                    if (ps.Length == 2 && ps[0].ParameterType == typeof(string) && ps[1].ParameterType == typeof(int))
+                    {
+                        clips = allMethods[i].Invoke(CPH, new object[] { login, 100 }) as IList;
+                        break;
+                    }
+                    if (ps.Length == 1 && ps[0].ParameterType == typeof(string))
+                    {
+                        clips = allMethods[i].Invoke(CPH, new object[] { login }) as IList;
+                        break;
+                    }
+                }
+            }
+
+            if (clips != null && clips.Count > 0)
+            {
+                object latest = null;
+                DateTime newest = DateTime.MinValue;
+
+                foreach (object c in clips)
+                {
+                    if (c == null) continue;
+                    PropertyInfo pCreated = c.GetType().GetProperty("CreatedAt");
+                    DateTime dt = DateTime.MinValue;
+                    if (pCreated != null)
+                    {
+                        object dv = pCreated.GetValue(c, null);
+                        if (dv is DateTime) dt = (DateTime)dv;
+                        else if (dv != null) DateTime.TryParse(dv.ToString(), out dt);
+                    }
+                    if (latest == null || dt >= newest)
+                    {
+                        newest = dt;
+                        latest = c;
+                    }
+                }
+
+                if (latest != null)
+                {
+                    Type cType = latest.GetType();
+                    PropertyInfo pId = cType.GetProperty("Id");
+                    PropertyInfo pTitle = cType.GetProperty("Title");
+                    PropertyInfo pThumb = cType.GetProperty("ThumbnailUrl");
+                    PropertyInfo pDur = cType.GetProperty("Duration");
+
+                    if (pId != null && pId.GetValue(latest, null) != null)
+                        clipSlug = pId.GetValue(latest, null).ToString();
+                    if (pTitle != null && pTitle.GetValue(latest, null) != null)
+                        clipTitle = pTitle.GetValue(latest, null).ToString();
+                    if (pThumb != null && pThumb.GetValue(latest, null) != null)
+                        clipThumb = pThumb.GetValue(latest, null).ToString();
+                    if (pDur != null && pDur.GetValue(latest, null) != null)
+                        double.TryParse(pDur.GetValue(latest, null).ToString(), out clipDuration);
+
+                    // Try Streamer.bot v1.0.3+ native clip download URL helper
+                    MethodInfo dlMethod = CPH.GetType().GetMethod("TwitchGetClipDownloadUrls", new Type[] { typeof(string) });
+                    if (dlMethod != null && !string.IsNullOrEmpty(clipSlug))
+                    {
+                        object dlObj = dlMethod.Invoke(CPH, new object[] { clipSlug });
+                        if (dlObj != null)
+                        {
+                            PropertyInfo pLand = dlObj.GetType().GetProperty("LandscapeDownloadUrl");
+                            if (pLand != null && pLand.GetValue(dlObj, null) != null)
+                                clipUrl = pLand.GetValue(dlObj, null).ToString();
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("[CustomShoutout] Clip lookup error: " + ex.Message);
+        }
+
+        // 3. Sanitize Strings & Broadcast to Overlay via WebSocket
+        display = (display ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        login = (login ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        avatar = (avatar ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        game = (game ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        clipUrl = (clipUrl ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        clipSlug = (clipSlug ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        clipTitle = (clipTitle ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+        clipThumb = (clipThumb ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+
+        bool hasClip = (!string.IsNullOrEmpty(clipUrl) || !string.IsNullOrEmpty(clipSlug));
+        int durSec = clipDuration > 0 ? (int)Math.Ceiling(clipDuration) : 30;
+
+        CPH.LogInfo("[CustomShoutout] User: " + display + " (" + login + ") | HasClip: " + hasClip + " | Slug: " + clipSlug);
+
+        string json = "{"
+            + "\"event\":\"CustomShoutoutTrigger\","
+            + "\"username\":\"" + display + "\","
+            + "\"login\":\"" + login + "\","
+            + "\"platform\":\"" + platform + "\","
+            + "\"avatar\":\"" + avatar + "\","
+            + "\"game\":\"" + game + "\","
+            + "\"hasClip\":" + (hasClip ? "true" : "false") + ","
+            + "\"clipUrl\":\"" + clipUrl + "\","
+            + "\"clipSlug\":\"" + clipSlug + "\","
+            + "\"clipTitle\":\"" + clipTitle + "\","
+            + "\"clipThumb\":\"" + clipThumb + "\","
+            + "\"clipDuration\":" + durSec
+            + "}";
+
+        CPH.WebsocketBroadcastJson(json);
+        return true;
+    }
+}

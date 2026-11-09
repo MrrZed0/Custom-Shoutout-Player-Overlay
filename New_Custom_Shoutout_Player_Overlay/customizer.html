@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shoutout Studio — Overlay Customizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700&family=Bebas+Neue&family=Montserrat:wght@600;800;900&family=Russo+One&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070d;
+    --bg-2: #0d0d16;
+    --panel: #11111c;
+    --card: #171725;
+    --card-2: #1d1d2e;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.18);
+    --text: #f2f2f8;
+    --muted: #8a8aa8;
+    --muted-2: #6b6b86;
+    --brand: #9146ff;
+    --brand-2: #00f0ff;
+    --ok: #53fc18;
+    --warn: #ffb020;
+    --radius: 12px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #262639; border-radius: 10px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #343453; }
+
+  .app {
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------------- TOP BAR ---------------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, #12121f, #0b0b13);
+    border-bottom: 1px solid var(--line);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .logo-mark {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 15px; color: #0a0a12;
+    box-shadow: 0 4px 14px rgba(145,70,255,0.45);
+  }
+  .logo h1 { font-size: 15px; font-weight: 800; letter-spacing: 0.2px; line-height: 1.1; }
+  .logo span { font-size: 11px; color: var(--muted-2); font-weight: 500; }
+
+  .topbar-spacer { flex: 1; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 13px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit; font-size: 12.5px; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .08s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--card-2); border-color: var(--line-strong); }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand), #6f2fe0);
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(145,70,255,0.35);
+  }
+  .btn-primary:hover { filter: brightness(1.1); background: linear-gradient(135deg, var(--brand), #6f2fe0); }
+  .btn-ghost { background: transparent; }
+  .btn-sm { padding: 6px 10px; font-size: 11.5px; }
+  .btn-icon { padding: 8px 10px; }
+
+  /* ---------------- MAIN GRID ---------------- */
+  .main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: 0;
+  }
+
+  /* ---------------- LEFT PANEL ---------------- */
+  .panel {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .panel-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 8px 0;
+    border-bottom: 1px solid var(--line);
+    background: #0c0c14;
+  }
+  .ptab {
+    flex: 1;
+    padding: 9px 4px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: inherit; font-size: 11.5px; font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid transparent;
+    transition: .15s;
+  }
+  .ptab:hover { color: #fff; }
+  .ptab.active { color: #fff; background: var(--panel); border-bottom-color: var(--brand-2); }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  .group {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .group.hidden { display: none; }
+  .group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 13px;
+    cursor: pointer;
+    user-select: none;
+    background: rgba(255,255,255,0.02);
+  }
+  .group-head h3 {
+    font-size: 11.5px; font-weight: 800; letter-spacing: 1.1px;
+    text-transform: uppercase; color: var(--brand-2);
+  }
+  .group-head .chev { color: var(--muted-2); font-size: 11px; transition: transform .2s; }
+  .group.collapsed .chev { transform: rotate(-90deg); }
+  .group-body { padding: 4px 13px 14px; display: flex; flex-direction: column; gap: 13px; }
+  .group.collapsed .group-body { display: none; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 12px; font-weight: 600; color: #cfcfe4;
+  }
+  .field-hint { font-size: 11px; color: var(--muted-2); line-height: 1.4; }
+
+  .range-row { display: flex; align-items: center; gap: 9px; }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none; appearance: none;
+    height: 4px; border-radius: 4px;
+    background: #2a2a40;
+    outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--brand);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  .num-box {
+    width: 62px; flex-shrink: 0;
+    background: #0a0a12; border: 1px solid var(--line);
+    color: #fff; border-radius: 7px;
+    padding: 5px 7px; font-family: inherit; font-size: 12px; font-weight: 700;
+    text-align: center;
+  }
+  .num-box:focus { outline: none; border-color: var(--brand-2); }
+
+  input[type="text"], input[type="number"], select {
+    background: #0a0a12;
+    border: 1px solid var(--line);
+    color: #fff;
+    padding: 9px 11px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    width: 100%;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--brand-2); }
+  select { cursor: pointer; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+
+  .color-field { display: flex; flex-direction: column; gap: 5px; }
+  .color-field > span { font-size: 11px; color: var(--muted); font-weight: 600; }
+  input[type="color"] {
+    width: 100%; height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 8px; background: #0a0a12;
+    cursor: pointer; padding: 3px;
+  }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; cursor: pointer;
+    padding: 2px 0;
+  }
+  .toggle-row > span { font-size: 12px; font-weight: 600; color: #cfcfe4; }
+  .switch {
+    position: relative; width: 38px; height: 21px; flex-shrink: 0;
+    background: #2a2a40; border-radius: 999px; transition: background .18s;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #8a8aa8; transition: .18s;
+  }
+  input[type="checkbox"] { display: none; }
+  input[type="checkbox"]:checked + .switch { background: var(--brand); }
+  input[type="checkbox"]:checked + .switch::after { left: 20px; background: #fff; }
+
+  .swatch-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .swatch {
+    width: 25px; height: 25px; border-radius: 7px;
+    border: 2px solid rgba(255,255,255,0.14);
+    cursor: pointer; transition: transform .14s, border-color .14s;
+  }
+  .swatch:hover { transform: scale(1.14); border-color: #fff; }
+  .swatch.active { border-color: var(--brand-2); box-shadow: 0 0 9px var(--brand-2); }
+
+  .plat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .plat-btn {
+    padding: 9px 4px; border-radius: 9px; border: 1px solid var(--line);
+    font-size: 11px; font-weight: 800; cursor: pointer; color: #fff;
+    font-family: inherit; transition: .18s;
+  }
+  .plat-btn.tw { background: rgba(145,70,255,0.22); border-color: #9146ff; }
+  .plat-btn.yt { background: rgba(255,0,51,0.2); border-color: #ff0033; }
+  .plat-btn.kk { background: rgba(83,252,24,0.16); border-color: #53fc18; color: #8dff5c; }
+  .plat-btn:hover { filter: brightness(1.25); }
+
+  .url-box {
+    background: #06060b; border: 1px solid var(--line);
+    padding: 10px; border-radius: 9px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10.5px; color: #9af0ff;
+    word-break: break-all; max-height: 92px; overflow-y: auto; line-height: 1.5;
+  }
+
+  .panel-foot {
+    padding: 11px 14px; border-top: 1px solid var(--line);
+    background: #0c0c14; display: flex; flex-direction: column; gap: 8px;
+  }
+  .panel-foot .btn { justify-content: center; }
+
+  /* ---------------- WORKSPACE ---------------- */
+  .workspace { display: grid; grid-template-rows: minmax(260px, 46%) 1fr; min-height: 0; }
+
+  .stage {
+    display: flex; flex-direction: column; min-height: 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+  }
+  .stage-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 14px;
+    background: #0b0b13;
+    border-bottom: 1px solid var(--line);
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line);
+    padding: 4px 9px; border-radius: 7px;
+    font-size: 11px; color: var(--muted);
+    cursor: pointer; transition: .15s;
+  }
+  .chip:hover { border-color: var(--line-strong); color: #fff; }
+  .chip b { color: var(--brand-2); font-weight: 800; }
+  .seg { display: flex; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button {
+    border: none; background: transparent; color: var(--muted);
+    padding: 6px 10px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .seg button:hover { color: #fff; }
+  .seg button.active { background: var(--brand); color: #fff; }
+
+  .stage-view {
+    flex: 1; min-height: 0; display: grid; place-items: center;
+    padding: 14px; overflow: hidden;
+  }
+  .canvas {
+    position: relative;
+    width: 100%; max-width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow);
+  }
+  .canvas.bg-checker { background: repeating-conic-gradient(#15151f 0% 25%, #1c1c2b 0% 50%) 50% / 26px 26px; }
+  .canvas.bg-dark { background: #000; }
+  .canvas.bg-green { background: #00b140; }
+  .canvas.bg-scene {
+    background: radial-gradient(circle at 25% 20%, #2b1b4d, transparent 55%),
+                radial-gradient(circle at 80% 75%, #123b47, transparent 55%), #0a0a12;
+  }
+  #preview-iframe {
+    position: absolute; top: 0; left: 0;
+    width: 1920px; height: 1080px;
+    border: none;
+    transform-origin: top left;
+  }
+
+  .stage-foot {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 9px 14px; background: #0b0b13; border-top: 1px solid var(--line);
+  }
+  .stage-foot input[type="text"] { width: 130px; }
+
+  /* ---------------- LIBRARY ---------------- */
+  .library { display: flex; flex-direction: column; min-height: 0; background: var(--bg); }
+  .lib-tabs {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;
+    padding: 12px 16px 10px;
+  }
+  .lib-tab {
+    padding: 9px 8px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--muted); font-family: inherit; font-weight: 700; font-size: 11.5px;
+    cursor: pointer; transition: .18s; text-align: center; line-height: 1.3;
+  }
+  .lib-tab small { display: block; font-size: 10px; font-weight: 600; opacity: .65; }
+  .lib-tab:hover { color: #fff; border-color: var(--line-strong); }
+  .lib-tab.active {
+    background: linear-gradient(135deg, rgba(145,70,255,0.4), rgba(0,240,255,0.14));
+    color: #fff; border-color: var(--brand-2);
+  }
+
+  .lib-controls {
+    display: flex; gap: 9px; align-items: center; flex-wrap: wrap;
+    padding: 0 16px 10px;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 190px; }
+  .search-wrap input { padding-left: 30px; }
+  .search-wrap::before {
+    content: "⌕"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--muted-2); font-size: 15px; pointer-events: none;
+  }
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; }
+  .pill {
+    padding: 5px 11px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--muted); cursor: pointer; font-family: inherit; transition: .15s;
+  }
+  .pill:hover { color: #fff; }
+  .pill.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+  .grid {
+    flex: 1; min-height: 0; overflow-y: auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 12px; padding: 2px 16px 24px;
+    align-content: start;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 9px;
+    cursor: pointer; transition: transform .15s, border-color .15s, box-shadow .15s;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+  .card.selected { border-color: var(--brand-2); box-shadow: 0 0 0 1px var(--brand-2), 0 6px 22px rgba(0,240,255,0.16); }
+  .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .card-name {
+    font-size: 11.5px; font-weight: 600; color: #e6e6f4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-id { font-size: 10.5px; font-weight: 800; color: var(--brand-2); flex-shrink: 0; }
+  .fav {
+    position: absolute; top: 6px; right: 6px; z-index: 3;
+    width: 22px; height: 22px; border-radius: 6px;
+    display: grid; place-items: center;
+    background: rgba(8,8,14,0.72); border: 1px solid var(--line);
+    color: #5c5c78; font-size: 12px; line-height: 1;
+    opacity: 0; transition: .15s;
+  }
+  .card:hover .fav, .fav.on { opacity: 1; }
+  .fav.on { color: #ffcc33; border-color: rgba(255,204,51,0.4); }
+
+  /* ---------------- THUMBNAILS ---------------- */
+  .thumb {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    border-radius: 8px; overflow: hidden; background: #06060b;
+    display: grid; place-items: center;
+  }
+  .t-frame { position: absolute; inset: 0; border-radius: 8px; }
+  .t-decor { position: absolute; inset: 0; pointer-events: none; }
+  .t-screen {
+    position: absolute; inset: 6px; border-radius: 5px;
+    background: linear-gradient(160deg, #15151f, #08080e);
+    display: grid; place-items: center;
+    color: rgba(255,255,255,0.3); font-size: 15px;
+  }
+  .t-pill {
+    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 5px;
+    padding: 3px 9px 3px 4px; border-radius: 999px;
+    background: rgba(10,10,18,0.95);
+    border: 1.5px solid #fff; z-index: 3;
+  }
+  .t-dot { width: 11px; height: 11px; border-radius: 50%; background: #333; flex-shrink: 0; }
+  .t-line { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.6); }
+
+  /* alert-library thumbnails */
+  .thumb.alert { background: linear-gradient(160deg, #10101a, #07070d); }
+  .a-bar {
+    position: relative;
+    width: 86%; min-height: 40px;
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 12px 6px 7px;
+    background: linear-gradient(135deg, rgba(14,14,24,0.96), rgba(26,20,45,0.96));
+  }
+  .a-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; }
+  .a-text { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+  /* motion demos (only animate on hover, keeps 190 cards cheap) */
+  .t-demo { transition: none; }
+  .card:hover .t-demo { animation-duration: 1.5s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+  .card:hover .m-pop { animation-name: dPop; }
+  .card:hover .m-glitch { animation-name: dGlitch; }
+  .card:hover .m-flipx { animation-name: dFlipX; }
+  .card:hover .m-flipy { animation-name: dFlipY; }
+  .card:hover .m-slide { animation-name: dSlide; }
+  .card:hover .m-whip { animation-name: dWhip; }
+  .card:hover .m-drop { animation-name: dDrop; }
+  .card:hover .m-iris { animation-name: dIris; }
+  .card:hover .m-zoom { animation-name: dZoom; }
+  .card:hover .m-spin { animation-name: dSpin; }
+  .card:hover .m-slice { animation-name: dSlice; }
+  .card:hover .m-fade { animation-name: dFade; }
+  .card:hover .m-blur { animation-name: dBlur; }
+  .card:hover .m-shutter { animation-name: dSlice; }
+  .card:hover .m-stretch { animation-name: dStretch; }
+  .card:hover .m-flicker { animation-name: dFlicker; }
+  .card:hover .m-deal { animation-name: dDeal; }
+  .card:hover .m-warp { animation-name: dWarp; }
+  .card:hover .m-pulse { animation-name: dPulse; }
+  .card:hover .m-chroma { animation-name: dChroma; }
+  .card:hover .m-sweep { animation-name: dSweep; }
+  .card:hover .m-beat { animation-name: dBeat; }
+
+  @keyframes dPop { 0%{transform:scale(.4);opacity:0} 45%,100%{transform:scale(1);opacity:1} }
+  @keyframes dGlitch { 0%{transform:skewX(16deg) scale(1.06);filter:hue-rotate(90deg);opacity:0} 45%,100%{transform:none;filter:none;opacity:1} }
+  @keyframes dFlipX { 0%{transform:perspective(500px) rotateX(70deg);opacity:0} 50%,100%{transform:none;opacity:1} }
+  @keyframes dFlipY { 0%{transform:perspective(500px) rotateY(70deg);opacity:0} 50%,100%{transform:none;opacity:1} }
+  @keyframes dSlide { 0%{transform:translateX(-40%) skewX(-14deg);opacity:0} 50%,100%{transform:none;opacity:1} }
+  @keyframes dWhip { 0%{transform:translateX(45%) scaleX(1.3);filter:blur(6px);opacity:0} 40%,100%{transform:none;filter:none;opacity:1} }
+  @keyframes dDrop { 0%{transform:translateY(-45%)} 55%{transform:translateY(4%)} 70%,100%{transform:none} }
+  @keyframes dIris { 0%{transform:scale(.1) rotate(12deg);opacity:0} 55%,100%{transform:none;opacity:1} }
+  @keyframes dZoom { 0%{transform:scale(1.5);filter:blur(5px);opacity:0} 50%,100%{transform:none;filter:none;opacity:1} }
+  @keyframes dSpin { 0%{transform:scale(.35) rotate(-40deg);opacity:0} 55%,100%{transform:none;opacity:1} }
+  @keyframes dSlice { 0%{transform:scaleY(.05) scaleX(1.12)} 50%,100%{transform:none} }
+  @keyframes dFade { 0%{transform:translateY(14%) scale(.96);filter:blur(4px);opacity:0} 55%,100%{transform:none;filter:none;opacity:1} }
+  @keyframes dBlur { 0%{filter:blur(12px);transform:scale(1.05);opacity:0} 55%,100%{filter:none;transform:none;opacity:1} }
+  @keyframes dStretch { 0%{transform:scale(1.3,.5)} 55%{transform:scale(.94,1.06)} 75%,100%{transform:none} }
+  @keyframes dFlicker { 0%,12%{opacity:0} 18%{opacity:1} 24%{opacity:.2} 32%,100%{opacity:1} }
+  @keyframes dDeal { 0%{transform:translate(30%,25%) rotate(16deg) scale(.85);opacity:0} 55%,100%{transform:none;opacity:1} }
+  @keyframes dWarp { 0%{transform:perspective(400px) translateZ(-260px) scale(1.5);filter:blur(8px);opacity:0} 55%,100%{transform:none;filter:none;opacity:1} }
+  @keyframes dPulse { 0%,100%{transform:scale(1);filter:brightness(1)} 50%{transform:scale(1.04);filter:brightness(1.3)} }
+  @keyframes dChroma { 0%{filter:hue-rotate(0)} 100%{filter:hue-rotate(360deg)} }
+  @keyframes dSweep { 0%,100%{transform:translateX(-4%)} 50%{transform:translateX(4%)} }
+  @keyframes dBeat { 0%,100%{transform:scale(1)} 18%{transform:scale(1.06)} 36%{transform:scale(1)} 54%{transform:scale(1.08)} }
+  @keyframes tShine { 0%{transform:translateX(-140%) skewX(-18deg)} 55%,100%{transform:translateX(280%) skewX(-18deg)} }
+  @keyframes tSpinHue { to { filter: hue-rotate(360deg); } }
+  .card:hover .t-shine { animation: tShine 2.4s ease-in-out infinite; }
+  .card:hover .t-huespin { animation: tSpinHue 4s linear infinite; }
+
+  /* ---------------- MODAL + TOAST ---------------- */
+  .modal-bg {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(4,4,8,0.74); backdrop-filter: blur(4px);
+    display: none; place-items: center; padding: 20px;
+  }
+  .modal-bg.open { display: grid; }
+  .modal {
+    width: min(520px, 100%);
+    background: var(--panel); border: 1px solid var(--line-strong);
+    border-radius: 16px; box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 15px 18px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-head h2 { font-size: 15px; font-weight: 800; }
+  .modal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; max-height: 60vh; overflow-y: auto; }
+  .modal-foot { padding: 13px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+  .theme-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px 11px;
+  }
+  .theme-row b { font-size: 12.5px; font-weight: 700; }
+  .theme-row small { color: var(--muted-2); font-size: 11px; }
+
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px);
+    background: #16162a; border: 1px solid var(--brand-2);
+    color: #fff; padding: 11px 18px; border-radius: 10px;
+    font-size: 12.5px; font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    opacity: 0; pointer-events: none; transition: .22s; z-index: 120;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 1200px) {
+    .main { grid-template-columns: 300px 1fr; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ======================= TOP BAR ======================= -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      <div>
+        <h1>Shoutout Studio</h1>
+        <span id="preset-count">presets</span>
+      </div>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="topbar-actions">
+      <button class="btn btn-sm" id="btn-random" title="Pick a random style in every library">🎲 Surprise me</button>
+      <button class="btn btn-sm" id="btn-themes" title="Save and load named looks">★ My looks</button>
+      <button class="btn btn-sm" id="btn-export" title="Download your settings as a .json file">↓ Export</button>
+      <button class="btn btn-sm" id="btn-import" title="Load settings from a .json file">↑ Import</button>
+      <button class="btn btn-sm" id="btn-reset" title="Back to factory settings">⟲ Reset</button>
+      <button class="btn btn-primary btn-sm" id="btn-copy">⧉ Copy OBS URL</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- ======================= LEFT PANEL ======================= -->
+    <aside class="panel">
+      <nav class="panel-tabs" id="panel-tabs"></nav>
+      <div class="panel-body" id="panel-body"></div>
+      <div class="panel-foot">
+        <button class="btn btn-primary" id="btn-copy-2">⧉ Copy OBS Browser Source URL</button>
+        <button class="btn" id="btn-open">↗ Open overlay in a new tab</button>
+      </div>
+    </aside>
+
+    <!-- ======================= WORKSPACE ======================= -->
+    <main class="workspace">
+      <section class="stage">
+        <div class="stage-bar">
+          <span class="chip" data-jump="borders">Border <b id="st-border">#1</b></span>
+          <span class="chip" data-jump="alerts">Banner <b id="st-alert">#1</b></span>
+          <span class="chip" data-jump="inout">In/Out <b id="st-inout">#1</b></span>
+          <span class="chip" data-jump="glows">Glow <b id="st-glow">#1</b></span>
+          <span class="chip" data-jump="anims">Anim <b id="st-anim">#1</b></span>
+          <div class="topbar-spacer"></div>
+          <div class="seg" id="bg-seg">
+            <button data-bg="checker" class="active">Checker</button>
+            <button data-bg="dark">Black</button>
+            <button data-bg="scene">Scene</button>
+            <button data-bg="green">Green</button>
+          </div>
+          <button class="btn btn-sm" id="btn-reload" title="Reload the preview overlay">⟳</button>
+        </div>
+
+        <div class="stage-view">
+          <div class="canvas bg-checker" id="canvas">
+            <iframe id="preview-iframe" src="overlay.html"></iframe>
+          </div>
+        </div>
+
+        <div class="stage-foot">
+          <button class="btn btn-primary btn-sm" id="t-standard">▶ Test shoutout</button>
+          <button class="btn btn-sm" id="t-long" title="Very long username and game title, to check nothing runs off screen">Long name test</button>
+          <button class="btn btn-sm" id="t-noclip" title="Shows what happens when the streamer has no clips">No-clip test</button>
+          <button class="btn btn-sm" id="t-kick-hls" title="Kick badge + a public sample HLS (.m3u8) stream, the same format Kick clips use">Kick HLS test</button>
+          <input type="text" id="kick-test-name" value="xqc" placeholder="kick channel" title="Kick channel to look up" />
+          <button class="btn btn-sm" id="t-kick-live" title="Runs the real Kick clip lookup. Open the console (F12) to see failures.">Live Kick lookup</button>
+        </div>
+      </section>
+
+      <!-- ======================= LIBRARY ======================= -->
+      <section class="library">
+        <div class="lib-tabs" id="lib-tabs"></div>
+        <div class="lib-controls">
+          <div class="search-wrap">
+            <input type="text" id="search" placeholder="Search this library…  (press / to jump here)" />
+          </div>
+          <button class="btn btn-sm" id="btn-favs">★ Favourites only</button>
+          <button class="btn btn-sm" id="btn-shuffle">🎲 Random in this tab</button>
+          <button class="btn btn-sm" id="btn-jump-selected">⌖ Show selected</button>
+          <span class="chip" id="result-count">0 shown</span>
+        </div>
+        <div class="pills" id="pills"></div>
+        <div class="grid" id="grid"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ======================= THEMES MODAL ======================= -->
+<div class="modal-bg" id="theme-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>My saved looks</h2>
+      <button class="btn btn-sm btn-ghost" id="theme-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="field-label"><span>Save the current setup</span></div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="theme-name" placeholder="e.g. Purple Cyber Night" />
+          <button class="btn btn-primary btn-sm" id="theme-save">Save</button>
+        </div>
+        <div class="field-hint">Saved looks stay in this browser. Use Export if you want a file you can back up or share.</div>
+      </div>
+      <div id="theme-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="theme-close-2">Done</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-file" accept="application/json,.json" style="display:none" />
+<div id="toast"></div>
+
+<script>
+/* ============================================================================
+   PRESET CATALOGS
+   IDs 1-120 keep their original mapping in every library, so looks saved with
+   the old version still resolve to exactly the same style. New styles start
+   at ID 121. These tables mirror overlay.html exactly.
+   ========================================================================== */
+
+const TWITCH_USER_COLORS = [
+  { name: "Twitch Purple", hex: "#9146FF" }, { name: "Blue", hex: "#0000FF" },
+  { name: "Coral", hex: "#FF7F50" },         { name: "DodgerBlue", hex: "#1E90FF" },
+  { name: "SpringGreen", hex: "#00FF7F" },   { name: "YellowGreen", hex: "#9ACD32" },
+  { name: "Green", hex: "#008000" },         { name: "OrangeRed", hex: "#FF4500" },
+  { name: "Red", hex: "#FF0000" },           { name: "GoldenRod", hex: "#DAA520" },
+  { name: "HotPink", hex: "#FF69B4" },       { name: "CadetBlue", hex: "#5F9EA0" },
+  { name: "SeaGreen", hex: "#2E8B57" },      { name: "Chocolate", hex: "#D2691E" },
+  { name: "BlueViolet", hex: "#8A2BE2" },    { name: "Firebrick", hex: "#B22222" }
+];
+
+const PALETTES = [
+  { name: "Twitch Neon", c1: "#9146ff", c2: "#00f0ff", c3: "#ff007f" },
+  { name: "Cyberpunk 2077", c1: "#fcee0a", c2: "#00f0ff", c3: "#ff003c" },
+  { name: "Inferno Blaze", c1: "#ff2a00", c2: "#ff9900", c3: "#ffee00" },
+  { name: "Arctic Frost", c1: "#00d2ff", c2: "#3a7bd5", c3: "#e0ffff" },
+  { name: "Toxic Venom", c1: "#53fc18", c2: "#00b09b", c3: "#111111" },
+  { name: "Royal Gold", c1: "#ffd700", c2: "#b8860b", c3: "#fff8dc" },
+  { name: "Blood Moon", c1: "#ff0033", c2: "#660011", c3: "#ff6680" },
+  { name: "Synthwave Sunset", c1: "#ff00aa", c2: "#7700ff", c3: "#00ffff" },
+  { name: "Matrix Code", c1: "#00ff41", c2: "#008f11", c3: "#003b00" },
+  { name: "Obsidian Stealth", c1: "#2c3e50", c2: "#bdc3c7", c3: "#000000" },
+  { name: "Aurora Borealis", c1: "#00ff87", c2: "#60efff", c3: "#7b2cbf" },
+  { name: "Cotton Candy", c1: "#ff9ebb", c2: "#a2d2ff", c3: "#cdb4db" }
+];
+
+const BORDER_A1 = [
+  { type: "neon-flow", label: "Neon Flow", cat: "Neon & Cyber" },
+  { type: "double-laser", label: "Dual Laser Rail", cat: "Neon & Cyber" },
+  { type: "hud-tactical", label: "Tactical HUD Brackets", cat: "Gaming & HUD" },
+  { type: "mecha-corners", label: "Mecha Sci-Fi Frame", cat: "Gaming & HUD" },
+  { type: "hazard-stripes", label: "Hazard Caution Frame", cat: "Retro & Pattern" },
+  { type: "plasma-pulse", label: "Plasma Aura Pulse", cat: "Fire & Elemental" },
+  { type: "prism-glass", label: "Crystal Glassmorphic", cat: "Luxury & Glass" },
+  { type: "gold-filigree", label: "Prestige Crown Trim", cat: "Luxury & Glass" },
+  { type: "glitch-cyber", label: "Glitch Overload", cat: "Neon & Cyber" },
+  { type: "retro-arcade", label: "Arcade Pixel Bevel", cat: "Retro & Pattern" }
+];
+const BORDER_A2 = [
+  { type: "circuit-trace", label: "Circuit Trace Grid", cat: "Gaming & HUD" },
+  { type: "aurora-veil", label: "Aurora Veil", cat: "Fire & Elemental" },
+  { type: "holo-shard", label: "Holographic Shard", cat: "Luxury & Glass" },
+  { type: "vapor-grid", label: "Vaporwave Grid", cat: "Retro & Pattern" },
+  { type: "data-stream", label: "Data Stream Rails", cat: "Neon & Cyber" },
+  { type: "ember-forge", label: "Ember Forge", cat: "Fire & Elemental" }
+];
+
+const ALERT_A1 = [
+  { type: "capsule-neon", label: "Neon Capsule Pill", cat: "Modern & Pill" },
+  { type: "cyber-angled", label: "Cyber Angled Blade", cat: "Cyber & Sci-Fi" },
+  { type: "hud-chassis", label: "Tactical HUD Chassis", cat: "Cyber & Sci-Fi" },
+  { type: "glass-frost", label: "Frosted Crystal Bar", cat: "Glass & Luxury" },
+  { type: "royal-crest", label: "Prestige Gold Trim", cat: "Glass & Luxury" },
+  { type: "esports-slant", label: "Esports Pro Slant", cat: "Esports & Broadcast" },
+  { type: "broadcast-lower", label: "Broadcast Lower Third", cat: "Esports & Broadcast" },
+  { type: "arcade-bevel", label: "Retro Arcade Cartridge", cat: "Retro & Hazard" },
+  { type: "hazard-plate", label: "Industrial Hazard Plate", cat: "Retro & Hazard" },
+  { type: "plasma-core", label: "Plasma Energy Core", cat: "Modern & Pill" }
+];
+const ALERT_A2 = [
+  { type: "holo-ticket", label: "Holographic Ticket", cat: "Glass & Luxury" },
+  { type: "neo-outline", label: "Neon Double Outline", cat: "Modern & Pill" },
+  { type: "command-bar", label: "Command Console Bar", cat: "Cyber & Sci-Fi" },
+  { type: "wave-crest", label: "Liquid Wave Crest", cat: "Modern & Pill" },
+  { type: "stealth-tag", label: "Stealth Angle Tag", cat: "Esports & Broadcast" },
+  { type: "aurora-pill", label: "Aurora Gradient Pill", cat: "Glass & Luxury" }
+];
+
+const INOUT_F1 = [
+  { type: "elastic-pop", label: "Elastic Pop", cat: "Pop & Bounce", m: "m-pop" },
+  { type: "cyber-glitch", label: "Cyber Glitch Warp", cat: "Glitch & Sci-Fi", m: "m-glitch" },
+  { type: "flip-3d-x", label: "3D Horizon Flip", cat: "3D Perspective", m: "m-flipx" },
+  { type: "flip-3d-y", label: "3D Vortex Spin", cat: "3D Perspective", m: "m-flipy" },
+  { type: "slide-skew", label: "Velocity Skew Slide", cat: "Slide & Whip", m: "m-slide" },
+  { type: "whip-pan", label: "Supersonic Whip Pan", cat: "Slide & Whip", m: "m-whip" },
+  { type: "drop-bounce", label: "Orbital Drop Bounce", cat: "Pop & Bounce", m: "m-drop" },
+  { type: "portal-iris", label: "Quantum Portal Expand", cat: "Glitch & Sci-Fi", m: "m-iris" },
+  { type: "hyper-zoom", label: "Hyperdrive Zoom", cat: "Zoom & Spiral", m: "m-zoom" },
+  { type: "spiral-spin", label: "Helix Corkscrew", cat: "Zoom & Spiral", m: "m-spin" },
+  { type: "matrix-slice", label: "Digital Matrix Reveal", cat: "Glitch & Sci-Fi", m: "m-slice" },
+  { type: "smooth-cinema", label: "Cinema Velvet Rise", cat: "Smooth & Fade", m: "m-fade" }
+];
+const INOUT_F2 = [
+  { type: "blur-drift", label: "Depth Blur Drift", cat: "Smooth & Fade", m: "m-blur" },
+  { type: "shutter-wipe", label: "Shutter Wipe", cat: "Slide & Whip", m: "m-shutter" },
+  { type: "rubber-stretch", label: "Rubber Band Stretch", cat: "Pop & Bounce", m: "m-stretch" },
+  { type: "neon-flicker", label: "Neon Flicker On", cat: "Glitch & Sci-Fi", m: "m-flicker" },
+  { type: "card-deal", label: "Card Deal Toss", cat: "3D Perspective", m: "m-deal" },
+  { type: "warp-tunnel", label: "Warp Tunnel", cat: "Zoom & Spiral", m: "m-warp" }
+];
+
+const INOUT_DIRS = [
+  { dir: "up", suffix: "Upward Thrust" },
+  { dir: "down", suffix: "Skyfall Drop" },
+  { dir: "left", suffix: "Left Vector" },
+  { dir: "right", suffix: "Right Vector" },
+  { dir: "center-fast", suffix: "Blitz Snap" },
+  { dir: "center-overshoot", suffix: "Spring Overshoot" },
+  { dir: "diag-tl", suffix: "NW Diagonal" },
+  { dir: "diag-br", suffix: "SE Diagonal" },
+  { dir: "twist-cw", suffix: "Clockwise Torque" },
+  { dir: "twist-ccw", suffix: "Counter Torque" }
+];
+
+const GLOW_A1 = [
+  { type: "neon-bloom", label: "Dual Neon Bloom", cat: "Neon Glows" },
+  { type: "abyss-drop", label: "Abyss Deep Shadow", cat: "Dark Shadows" },
+  { type: "rgb-split", label: "Chromatic RGB Split", cat: "Cyber Shadows" },
+  { type: "hard-esports", label: "Hard Esports Offset", cat: "Hard & Comic" },
+  { type: "ethereal-halo", label: "Celestial Halo Ring", cat: "Neon Glows" },
+  { type: "inferno-ember", label: "Ember Core Radiance", cat: "Elemental Glows" },
+  { type: "frost-rim", label: "Cryo Rim Shimmer", cat: "Elemental Glows" },
+  { type: "laser-crisp", label: "Razor Laser Outline", cat: "Cyber Shadows" },
+  { type: "retro-crt", label: "CRT Phosphor Haze", cat: "Hard & Comic" },
+  { type: "volumetric-mist", label: "Volumetric Multi-Aura", cat: "Dark Shadows" }
+];
+const GLOW_A2 = [
+  { type: "aurora-wash", label: "Aurora Wash", cat: "Neon Glows" },
+  { type: "double-rim", label: "Double Rim Light", cat: "Hard & Comic" },
+  { type: "soft-studio", label: "Soft Studio Lift", cat: "Dark Shadows" },
+  { type: "toxic-bloom", label: "Toxic Inner Bloom", cat: "Elemental Glows" },
+  { type: "prism-edge", label: "Prism Edge Split", cat: "Cyber Shadows" },
+  { type: "deep-vignette", label: "Deep Vignette", cat: "Dark Shadows" }
+];
+
+const ANIM_A1 = [
+  { type: "energy-conduit", label: "Border-to-Banner Conduit", cat: "Energy Sync", m: "m-pulse" },
+  { type: "orbit-comet", label: "Orbiting Laser Comet", cat: "Orbital & Flow", m: "m-pulse" },
+  { type: "plasma-wave", label: "Harmonic Plasma Wave", cat: "Orbital & Flow", m: "m-pulse" },
+  { type: "heartbeat-surge", label: "Adrenaline Heartbeat", cat: "Pulse & Breath", m: "m-beat" },
+  { type: "rainbow-prism", label: "Chroma Spectrum Sync", cat: "Spectrum & Glitch", m: "m-chroma" },
+  { type: "cyber-scanline", label: "Tactical Scanline Link", cat: "Spectrum & Glitch", m: "m-pulse" },
+  { type: "dual-polarity", label: "Dual Polarity Breath", cat: "Pulse & Breath", m: "m-pulse" },
+  { type: "electric-arc", label: "High-Voltage Arc", cat: "Energy Sync", m: "m-glitch" },
+  { type: "tachyon-stream", label: "Tachyon Particle Flow", cat: "Orbital & Flow", m: "m-sweep" },
+  { type: "supernova-ripple", label: "Supernova Aura Ripple", cat: "Pulse & Breath", m: "m-beat" }
+];
+const ANIM_A2 = [
+  { type: "aurora-drift", label: "Aurora Colour Drift", cat: "Spectrum & Glitch", m: "m-chroma" },
+  { type: "pulse-ring", label: "Expanding Pulse Ring", cat: "Pulse & Breath", m: "m-pulse" },
+  { type: "signal-sweep", label: "Signal Sweep", cat: "Orbital & Flow", m: "m-sweep" },
+  { type: "ember-flicker", label: "Ember Flicker", cat: "Energy Sync", m: "m-flicker" },
+  { type: "tide-breath", label: "Tide Breath", cat: "Pulse & Breath", m: "m-pulse" },
+  { type: "strobe-sync", label: "Strobe Sync", cat: "Spectrum & Glitch", m: "m-pulse" }
+];
+
+/* Builds a catalog: 10 legacy archetypes x 12 palettes = 1-120, then the new ones. */
+function buildCatalog(set1, set2, spread) {
+  const out = [];
+  const spreadList = spread || PALETTES;
+  [set1, set2].forEach((set, pass) => {
+    const total = (pass === 0 ? 120 : set.length * spreadList.length);
+    for (let i = 0; i < total; i++) {
+      const arch = set[i % set.length];
+      const sp = spreadList[Math.floor(i / set.length) % spreadList.length];
+      const pal = sp.c1 ? sp : PALETTES[Math.floor(i / set.length) % PALETTES.length];
+      out.push({
+        id: (pass === 0 ? i + 1 : 121 + i),
+        isNew: pass === 1,
+        type: arch.type,
+        m: arch.m || "",
+        dir: sp.dir || "",
+        category: arch.cat,
+        name: sp.suffix ? (arch.label + ": " + sp.suffix) : (pal.name + " " + arch.label),
+        c1: pal.c1, c2: pal.c2, c3: pal.c3
+      });
+    }
+  });
+  return out;
+}
+
+const ALL = {
+  borders: buildCatalog(BORDER_A1, BORDER_A2),
+  alerts:  buildCatalog(ALERT_A1, ALERT_A2),
+  inout:   buildCatalog(INOUT_F1, INOUT_F2, INOUT_DIRS),
+  glows:   buildCatalog(GLOW_A1, GLOW_A2),
+  anims:   buildCatalog(ANIM_A1, ANIM_A2)
+};
+
+const LIBS = [
+  { key: "borders", title: "Clip Borders",   stateKey: "borderId",      pill: "st-border" },
+  { key: "alerts",  title: "Alert Banners",  stateKey: "alertStyleId",  pill: "st-alert" },
+  { key: "inout",   title: "In / Out FX",    stateKey: "inOutEffectId", pill: "st-inout" },
+  { key: "glows",   title: "Glows & Shadows",stateKey: "glowShadowId",  pill: "st-glow" },
+  { key: "anims",   title: "Border Anims",   stateKey: "animStyleId",   pill: "st-anim" }
+];
+
+/* ============================================================================
+   STATE
+   Every key here is sent to the overlay (localStorage + OBS URL), so it must
+   match a key the overlay knows about.
+   ========================================================================== */
+const DEFAULTS = {
+  wsHost: "127.0.0.1",
+  wsPort: "8080",
+  alertDuration: 10,
+  clipDuration: 30,
+  borderId: 1,
+  alertStyleId: 1,
+  inOutEffectId: 1,
+  glowShadowId: 1,
+  animStyleId: 1,
+  colorMode: "preset",
+  twitchUserColor: "#9146FF",
+  useCustomColors: false,
+  useCustomTextColors: false,
+  primary: "#9146ff",
+  secondary: "#00f0ff",
+  accent: "#ff007f",
+  alertBorderColor: "#9146ff",
+  alertBg1: "#0e0e18",
+  alertBg2: "#1a142d",
+  titleColor: "#00f0ff",
+  usernameColor: "#ffffff",
+  gameColor: "#00f0ff",
+  alertPrefix: "SHOUTOUT TO",
+  alertSubtext: "Go drop them a follow!",
+  borderThickness: 6,
+  borderRadius: 18,
+  alertBorderThickness: 3,
+  alertBorderRadius: 50,
+  titleSize: 15,
+  usernameSize: 40,
+  gameSize: 14,
+  avatarSize: 92,
+  glowSize: 22,
+  playerWidth: 720,
+  position: "pos-center",
+  fontFamily: "'Outfit', sans-serif",
+  volume: 80,
+  showBanner: true,
+  edgeMargin: 48,
+  showProgress: true,
+  showAvatarRing: true,
+  nameUppercase: false
+};
+
+let state = Object.assign({}, DEFAULTS);
+let favourites = {};
+let activeLib = "borders";
+let activeCat = "All";
+let favsOnly = false;
+
+/* ============================================================================
+   CONTROL SCHEMA — the whole left panel is generated from this
+   ========================================================================== */
+const SCHEMA = [
+  { tab: "alert", title: "Alert card", fields: [
+    { k: "alertPrefix", t: "text", label: "Title line", hint: "The small line above the username." },
+    { k: "alertSubtext", t: "text", label: "Fallback subtitle", hint: "Used when Streamer.bot sends no game name." },
+    { k: "alertDuration", t: "range", label: "Alert on screen", min: 2, max: 30, unit: "s" },
+    { k: "nameUppercase", t: "bool", label: "Force UPPERCASE names" },
+    { k: "showAvatarRing", t: "bool", label: "Spinning avatar ring" }
+  ]},
+  { tab: "alert", title: "Text & avatar sizes", fields: [
+    { k: "titleSize", t: "range", label: "Title size", min: 10, max: 36, unit: "px" },
+    { k: "usernameSize", t: "range", label: "Username size", min: 18, max: 72, unit: "px" },
+    { k: "gameSize", t: "range", label: "Game / subtitle size", min: 10, max: 32, unit: "px" },
+    { k: "avatarSize", t: "range", label: "Avatar size", min: 48, max: 150, unit: "px" }
+  ]},
+
+  { tab: "clip", title: "Clip playback", fields: [
+    { k: "clipDuration", t: "range", label: "Clip time limit", min: 5, max: 90, unit: "s", hint: "Short clips still end on their own." },
+    { k: "volume", t: "range", label: "Clip volume", min: 0, max: 100, unit: "%" },
+    { k: "playerWidth", t: "range", label: "Player width", min: 360, max: 1280, step: 20, unit: "px" }
+  ]},
+  { tab: "clip", title: "Clip frame", fields: [
+    { k: "borderThickness", t: "range", label: "Border thickness", min: 0, max: 24, unit: "px" },
+    { k: "borderRadius", t: "range", label: "Corner radius", min: 0, max: 45, unit: "px" },
+    { k: "showBanner", t: "bool", label: "Show name banner under clip" },
+    { k: "showProgress", t: "bool", label: "Show countdown bars" }
+  ]},
+
+  { tab: "layout", title: "Screen placement", fields: [
+    { k: "position", t: "select", label: "Position", opts: [
+      ["pos-center", "Center screen"], ["pos-bottom-left", "Bottom left"], ["pos-bottom-right", "Bottom right"],
+      ["pos-top-left", "Top left"], ["pos-top-right", "Top right"],
+      ["pos-bottom-center", "Bottom center"], ["pos-top-center", "Top center"]
+    ]},
+    { k: "edgeMargin", t: "range", label: "Edge margin", min: 0, max: 160, unit: "px", hint: "Distance from the screen edge in corner positions." }
+  ]},
+  { tab: "layout", title: "Typeface", fields: [
+    { k: "fontFamily", t: "select", label: "Font", opts: [
+      ["'Outfit', sans-serif", "Outfit — modern"],
+      ["'Orbitron', sans-serif", "Orbitron — cyber"],
+      ["'Rajdhani', sans-serif", "Rajdhani — tactical"],
+      ["'Bebas Neue', sans-serif", "Bebas Neue — arcade"],
+      ["'Montserrat', sans-serif", "Montserrat — bold"],
+      ["'Russo One', sans-serif", "Russo One — esports"],
+      ["'Chakra Petch', sans-serif", "Chakra Petch — techno"]
+    ]}
+  ]},
+  { tab: "layout", title: "Banner shape & glow", fields: [
+    { k: "alertBorderThickness", t: "range", label: "Banner border thickness", min: 0, max: 20, unit: "px" },
+    { k: "alertBorderRadius", t: "range", label: "Banner corner radius", min: 0, max: 60, unit: "px" },
+    { k: "glowSize", t: "range", label: "Glow & shadow intensity", min: 0, max: 60, unit: "px" }
+  ]},
+
+  { tab: "colors", title: "Colour mode", fields: [
+    { k: "colorMode", t: "select", label: "Where colours come from", opts: [
+      ["preset", "From the selected border preset"],
+      ["custom", "My custom colours below"],
+      ["twitch-user", "The user's Twitch chat colour"],
+      ["platform-auto", "Auto by platform (Twitch / YT / Kick)"],
+      ["twitch-purple", "Twitch purple"],
+      ["youtube-red", "YouTube red"],
+      ["kick-green", "Kick green"]
+    ]},
+    { t: "platforms" },
+    { t: "swatches", label: "Twitch chat colour set" }
+  ]},
+  { tab: "colors", title: "Border colours", fields: [
+    { k: "useCustomColors", t: "bool", label: "Override preset colours" },
+    { t: "colors3", keys: [["primary", "Colour 1"], ["secondary", "Colour 2"], ["accent", "Colour 3"]] }
+  ]},
+  { tab: "colors", title: "Banner & text colours", fields: [
+    { k: "useCustomTextColors", t: "bool", label: "Use custom text / banner colours" },
+    { t: "colors3", keys: [["alertBorderColor", "Banner border"], ["alertBg1", "Banner BG 1"], ["alertBg2", "Banner BG 2"]] },
+    { t: "colors3", keys: [["titleColor", "Title"], ["usernameColor", "Username"], ["gameColor", "Game text"]] }
+  ]},
+
+  { tab: "output", title: "Streamer.bot connection", fields: [
+    { t: "pair", keys: [
+      { k: "wsHost", t: "text", label: "WebSocket host" },
+      { k: "wsPort", t: "number", label: "Port" }
+    ]},
+    { t: "hint", text: "These must match Servers/Clients → WebSocket Server in Streamer.bot. The overlay reconnects on its own if Streamer.bot restarts." }
+  ]},
+  { tab: "output", title: "OBS browser source", fields: [
+    { t: "url" },
+    { t: "hint", text: "Add a Browser Source in OBS at 1920×1080 with this URL. Tick “Shutdown source when not visible” off so clips are ready instantly." }
+  ]}
+];
+
+const TABS = [
+  { k: "alert", label: "Alert" },
+  { k: "clip", label: "Clip" },
+  { k: "layout", label: "Layout" },
+  { k: "colors", label: "Colours" },
+  { k: "output", label: "OBS" }
+];
+let activeTab = "alert";
+
+/* ============================================================================
+   PANEL RENDERING
+   ========================================================================== */
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function fieldHtml(f) {
+  if (f.t === "range") {
+    return `<div class="field">
+      <div class="field-label"><span>${esc(f.label)}</span></div>
+      <div class="range-row">
+        <input type="range" data-k="${f.k}" min="${f.min}" max="${f.max}" step="${f.step || 1}" />
+        <input type="number" class="num-box" data-num="${f.k}" min="${f.min}" max="${f.max}" step="${f.step || 1}" />
+      </div>
+      ${f.hint ? `<div class="field-hint">${esc(f.hint)}</div>` : ""}
+    </div>`;
+  }
+  if (f.t === "text" || f.t === "number") {
+    return `<div class="field">
+      <div class="field-label"><span>${esc(f.label)}</span></div>
+      <input type="${f.t}" data-k="${f.k}" />
+      ${f.hint ? `<div class="field-hint">${esc(f.hint)}</div>` : ""}
+    </div>`;
+  }
+  if (f.t === "select") {
+    return `<div class="field">
+      <div class="field-label"><span>${esc(f.label)}</span></div>
+      <select data-k="${f.k}">${f.opts.map(o => `<option value="${esc(o[0])}">${esc(o[1])}</option>`).join("")}</select>
+      ${f.hint ? `<div class="field-hint">${esc(f.hint)}</div>` : ""}
+    </div>`;
+  }
+  if (f.t === "bool") {
+    return `<label class="toggle-row">
+      <span>${esc(f.label)}</span>
+      <input type="checkbox" data-k="${f.k}" /><span class="switch"></span>
+    </label>`;
+  }
+  if (f.t === "colors3") {
+    return `<div class="grid-3">${f.keys.map(([k, lbl]) =>
+      `<div class="color-field"><span>${esc(lbl)}</span><input type="color" data-k="${k}" /></div>`).join("")}</div>`;
+  }
+  if (f.t === "pair") {
+    return `<div class="grid-2">${f.keys.map(fieldHtml).join("")}</div>`;
+  }
+  if (f.t === "platforms") {
+    return `<div class="field">
+      <div class="field-label"><span>One-click platform themes</span></div>
+      <div class="plat-grid">
+        <button type="button" class="plat-btn tw" data-plat="twitch">Twitch</button>
+        <button type="button" class="plat-btn yt" data-plat="youtube">YouTube</button>
+        <button type="button" class="plat-btn kk" data-plat="kick">Kick</button>
+      </div>
+    </div>`;
+  }
+  if (f.t === "swatches") {
+    return `<div class="field">
+      <div class="field-label"><span>${esc(f.label)}</span></div>
+      <div class="swatch-grid" id="swatches"></div>
+      <div class="field-hint">Used as the fallback when a chatter has no colour set.</div>
+    </div>`;
+  }
+  if (f.t === "url") {
+    return `<div class="field">
+      <div class="field-label"><span>Overlay URL</span></div>
+      <div class="url-box" id="obs-url"></div>
+    </div>`;
+  }
+  if (f.t === "hint") return `<div class="field-hint">${esc(f.text)}</div>`;
+  return "";
+}
+
+function renderPanel() {
+  document.getElementById("panel-tabs").innerHTML =
+    TABS.map(t => `<button class="ptab${t.k === activeTab ? " active" : ""}" data-tab="${t.k}">${t.label}</button>`).join("");
+
+  document.getElementById("panel-body").innerHTML = SCHEMA.map((g, i) =>
+    `<section class="group${g.tab === activeTab ? "" : " hidden"}" data-tab="${g.tab}" data-gi="${i}">
+      <div class="group-head"><h3>${esc(g.title)}</h3><span class="chev">▾</span></div>
+      <div class="group-body">${g.fields.map(fieldHtml).join("")}</div>
+    </section>`).join("");
+
+  document.querySelectorAll(".ptab").forEach(b => b.onclick = () => {
+    activeTab = b.dataset.tab;
+    renderPanel();
+    commit();
+  });
+  document.querySelectorAll(".group-head").forEach(h => h.onclick = () => h.parentElement.classList.toggle("collapsed"));
+
+  // bind every generated control
+  document.querySelectorAll("[data-k]").forEach(el => {
+    const k = el.dataset.k;
+    el.addEventListener("input", () => {
+      if (el.type === "checkbox") state[k] = el.checked;
+      else if (el.type === "range" || el.type === "number") state[k] = Number(el.value);
+      else state[k] = el.value;
+      commit();
+    });
+  });
+  document.querySelectorAll("[data-num]").forEach(el => {
+    el.addEventListener("input", () => {
+      const k = el.dataset.num;
+      const v = Number(el.value);
+      if (!Number.isFinite(v)) return;
+      state[k] = v;
+      const slider = document.querySelector('input[type="range"][data-k="' + k + '"]');
+      if (slider) slider.value = v;
+      commit();
+    });
+  });
+  document.querySelectorAll("[data-plat]").forEach(b => b.onclick = () => applyPlatformTheme(b.dataset.plat));
+
+  renderSwatches();
+  syncInputs();
+}
+
+function renderSwatches() {
+  const wrap = document.getElementById("swatches");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  TWITCH_USER_COLORS.forEach(tc => {
+    const sw = document.createElement("div");
+    sw.className = "swatch" + (String(state.twitchUserColor).toLowerCase() === tc.hex.toLowerCase() ? " active" : "");
+    sw.style.background = tc.hex;
+    sw.title = tc.name + " (" + tc.hex + ")";
+    sw.onclick = () => {
+      state.twitchUserColor = tc.hex;
+      state.colorMode = "twitch-user";
+      state.primary = tc.hex;
+      state.alertBorderColor = tc.hex;
+      renderSwatches();
+      syncInputs();
+      commit();
+    };
+    wrap.appendChild(sw);
+  });
+}
+
+function syncInputs() {
+  document.querySelectorAll("[data-k]").forEach(el => {
+    const v = state[el.dataset.k];
+    if (el.type === "checkbox") el.checked = !!v;
+    else el.value = v;
+  });
+  document.querySelectorAll("[data-num]").forEach(el => {
+    const f = findField(el.dataset.num);
+    el.value = state[el.dataset.num];
+    if (f && f.unit) el.title = state[el.dataset.num] + f.unit;
+  });
+}
+
+function findField(k) {
+  for (const g of SCHEMA) for (const f of g.fields) {
+    if (f.k === k) return f;
+    if (f.keys) for (const sub of f.keys) if (sub.k === k) return sub;
+  }
+  return null;
+}
+
+function applyPlatformTheme(p) {
+  const T = {
+    twitch: { mode: "twitch-purple", c1: "#9146ff", c2: "#00f0ff", c3: "#ff007f" },
+    youtube: { mode: "youtube-red", c1: "#ff0033", c2: "#ff6666", c3: "#ffffff" },
+    kick: { mode: "kick-green", c1: "#53fc18", c2: "#00e701", c3: "#ffffff" }
+  }[p];
+  state.colorMode = T.mode;
+  state.primary = T.c1;
+  state.secondary = T.c2;
+  state.accent = T.c3;
+  state.alertBorderColor = T.c1;
+  state.titleColor = T.c2;
+  state.gameColor = T.c2;
+  syncInputs();
+  commit();
+  toast(p.charAt(0).toUpperCase() + p.slice(1) + " theme applied");
+}
+
+/* ============================================================================
+   LIBRARY RENDERING
+   ========================================================================== */
+function renderLibTabs() {
+  document.getElementById("lib-tabs").innerHTML = LIBS.map((l, i) =>
+    `<button class="lib-tab${l.key === activeLib ? " active" : ""}" data-lib="${l.key}">
+       ${i + 1}. ${l.title}<small>${ALL[l.key].length} styles</small>
+     </button>`).join("");
+
+  document.querySelectorAll(".lib-tab").forEach(b => b.onclick = () => {
+    activeLib = b.dataset.lib;
+    activeCat = "All";
+    document.getElementById("search").value = "";
+    renderLibTabs(); renderPills(); renderGrid();
+  });
+}
+
+function renderPills() {
+  const cats = ["All", ...new Set(ALL[activeLib].map(p => p.category)), "New"];
+  document.getElementById("pills").innerHTML = cats.map(c =>
+    `<button class="pill${c === activeCat ? " active" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
+  document.querySelectorAll(".pill").forEach(b => b.onclick = () => {
+    activeCat = b.dataset.cat;
+    renderPills(); renderGrid();
+  });
+}
+
+function favKey(lib, id) { return lib + ":" + id; }
+
+function currentId() { return state[LIBS.find(l => l.key === activeLib).stateKey]; }
+function setCurrentId(id) { state[LIBS.find(l => l.key === activeLib).stateKey] = id; }
+
+function filtered() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  return ALL[activeLib].filter(p => {
+    if (activeCat === "New" ? !p.isNew : (activeCat !== "All" && p.category !== activeCat)) return false;
+    if (favsOnly && !favourites[favKey(activeLib, p.id)]) return false;
+    if (q && !p.name.toLowerCase().includes(q) && !String(p.id).includes(q) && !p.category.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById("grid");
+  const sel = currentId();
+  const list = filtered();
+  document.getElementById("result-count").textContent = list.length + " shown";
+
+  grid.innerHTML = list.map(p => {
+    const isFav = !!favourites[favKey(activeLib, p.id)];
+    return `<div class="card${p.id === sel ? " selected" : ""}" data-id="${p.id}" title="${esc(p.name)}">
+      <button class="fav${isFav ? " on" : ""}" data-fav="${p.id}" title="Favourite">${isFav ? "★" : "☆"}</button>
+      ${thumbHtml(p)}
+      <div class="card-meta">
+        <span class="card-name">${esc(p.name)}</span>
+        <span class="card-id">#${p.id}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".card").forEach(c => c.onclick = e => {
+    if (e.target.dataset.fav) return;
+    setCurrentId(Number(c.dataset.id));
+    renderGrid();
+    commit();
+  });
+  grid.querySelectorAll("[data-fav]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const key = favKey(activeLib, Number(b.dataset.fav));
+    if (favourites[key]) delete favourites[key]; else favourites[key] = 1;
+    localStorage.setItem("sb_shoutout_favs_v1", JSON.stringify(favourites));
+    renderGrid();
+  });
+}
+
+/* ---------- Thumbnails that actually look like the style ---------- */
+function thumbHtml(p) {
+  if (activeLib === "alerts") return alertThumb(p);
+  if (activeLib === "glows") return glowThumb(p);
+  if (activeLib === "inout") return motionThumb(p, p.m, true);
+  if (activeLib === "anims") return motionThumb(p, p.m, false);
+  return borderThumb(p);
+}
+
+function borderThumb(p) {
+  const { c1, c2, c3 } = p;
+  let frame = `background:linear-gradient(135deg, ${c1}, ${c2});`;
+  let decor = "";
+  let extra = "";
+
+  switch (p.type) {
+    case "neon-flow":
+      frame = `background:linear-gradient(120deg, ${c1}, ${c2}, ${c3}, ${c1});background-size:300% 300%;box-shadow:0 0 14px ${c1}aa;`;
+      break;
+    case "double-laser":
+      frame = `background:transparent;border:2px solid ${c1};box-shadow:0 0 10px ${c1}, inset 0 0 10px ${c2};`;
+      decor = `<div style="position:absolute;inset:-3px;border:1.5px solid ${c2};border-radius:10px;box-shadow:0 0 8px ${c2};"></div>`;
+      break;
+    case "hud-tactical":
+      frame = `background:linear-gradient(135deg, ${c1}44, transparent 40%, transparent 60%, ${c2}44);border:1px solid ${c1}88;`;
+      decor = hudSvg(c1, c2);
+      break;
+    case "mecha-corners":
+      frame = `background:linear-gradient(90deg, ${c1}, ${c2});clip-path:polygon(0 9px,9px 0,calc(100% - 9px) 0,100% 9px,100% calc(100% - 9px),calc(100% - 9px) 100%,9px 100%,0 calc(100% - 9px));`;
+      break;
+    case "hazard-stripes":
+      frame = `background:repeating-linear-gradient(45deg, ${c1} 0 8px, ${c3} 8px 16px);box-shadow:0 0 10px ${c1}88;`;
+      break;
+    case "plasma-pulse":
+      frame = `background:radial-gradient(circle at 50% 50%, ${c3}, ${c1}, ${c2});box-shadow:0 0 15px ${c1};`;
+      break;
+    case "prism-glass":
+      frame = `background:linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.07));border:1px solid rgba(255,255,255,0.55);box-shadow:0 0 12px ${c1}88;`;
+      break;
+    case "gold-filigree":
+      frame = `background:linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1});box-shadow:0 0 12px ${c1};`;
+      decor = `<svg width="100%" height="100%" viewBox="0 0 160 90" preserveAspectRatio="none">
+        <polygon points="0,0 12,0 0,12" fill="${c1}"/><polygon points="160,0 148,0 160,12" fill="${c1}"/>
+        <polygon points="0,90 12,90 0,78" fill="${c1}"/><polygon points="160,90 148,90 160,78" fill="${c1}"/>
+        <polygon points="80,0 86,6 80,12 74,6" fill="${c3}"/></svg>`;
+      break;
+    case "glitch-cyber":
+      frame = `background:linear-gradient(90deg, ${c1}, ${c2}, ${c3});box-shadow:-3px 0 0 ${c2}, 3px 0 0 ${c3}, 0 0 12px ${c1};`;
+      break;
+    case "retro-arcade":
+      frame = `background:${c1};border:3px dashed ${c2};box-shadow:0 0 0 3px ${c3};`;
+      break;
+    case "circuit-trace":
+      frame = `background:linear-gradient(135deg, ${c1}, ${c2} 55%, ${c1});box-shadow:0 0 12px ${c1}, inset 0 0 10px ${c3}99;`;
+      decor = `<svg width="100%" height="100%" viewBox="0 0 160 90" preserveAspectRatio="none">
+        <path d="M 10,2 L 40,2 L 48,10 L 80,10" fill="none" stroke="${c2}" stroke-width="2" stroke-dasharray="7 5"/>
+        <path d="M 150,88 L 120,88 L 112,80 L 82,80" fill="none" stroke="${c3}" stroke-width="2" stroke-dasharray="7 5"/>
+        <circle cx="80" cy="10" r="2.6" fill="${c2}"/><circle cx="82" cy="80" r="2.6" fill="${c3}"/></svg>`;
+      break;
+    case "aurora-veil":
+      frame = `background:linear-gradient(115deg, ${c1}, ${c2}, ${c3}, ${c2}, ${c1});background-size:300% 300%;filter:saturate(1.15);box-shadow:0 0 16px ${c2}aa;`;
+      break;
+    case "holo-shard":
+      frame = `background:conic-gradient(from 210deg, ${c1}, ${c2}, ${c3}, ${c2}, ${c1});`;
+      extra = "t-huespin";
+      decor = `<div style="position:absolute;inset:0;overflow:hidden;border-radius:8px;">
+        <div class="t-shine" style="position:absolute;top:0;bottom:0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);"></div></div>`;
+      break;
+    case "vapor-grid":
+      frame = `background:repeating-linear-gradient(90deg, ${c1} 0 1.5px, transparent 1.5px 9px), repeating-linear-gradient(0deg, ${c2} 0 1.5px, transparent 1.5px 9px), linear-gradient(140deg, ${c3}, #090912);box-shadow:0 0 12px ${c1}99;`;
+      break;
+    case "data-stream":
+      frame = `background:linear-gradient(90deg, ${c1}33, ${c2}22, ${c1}33);border:1px solid ${c1}88;box-shadow:0 0 10px ${c1}77;`;
+      decor = `<svg width="100%" height="100%" viewBox="0 0 160 90" preserveAspectRatio="none">
+        <rect x="1" y="1" width="158" height="88" rx="5" fill="none" stroke="${c2}" stroke-width="2.5" stroke-dasharray="12 8"/></svg>`;
+      break;
+    case "ember-forge":
+      frame = `background:radial-gradient(ellipse at 50% 125%, ${c3}, ${c2} 38%, ${c1} 78%);box-shadow:0 0 16px ${c1};`;
+      break;
+  }
+
+  return `<div class="thumb">
+    <div class="t-frame ${extra}" style="${frame}"></div>
+    <div class="t-decor">${decor}</div>
+    <div class="t-screen">▶</div>
+    <div class="t-pill" style="border-color:${c1}; box-shadow:0 0 8px ${c1}66;">
+      <span class="t-dot" style="background:${c2}"></span>
+      <span class="t-line" style="width:30px"></span>
+    </div>
+  </div>`;
+}
+
+function hudSvg(c1, c2) {
+  return `<svg width="100%" height="100%" viewBox="0 0 160 90" preserveAspectRatio="none">
+    <path d="M 2,16 L 2,2 L 20,2" fill="none" stroke="${c1}" stroke-width="3"/>
+    <path d="M 140,2 L 158,2 L 158,16" fill="none" stroke="${c2}" stroke-width="3"/>
+    <path d="M 2,74 L 2,88 L 20,88" fill="none" stroke="${c2}" stroke-width="3"/>
+    <path d="M 140,88 L 158,88 L 158,74" fill="none" stroke="${c1}" stroke-width="3"/></svg>`;
+}
+
+function alertThumb(p) {
+  const { c1, c2 } = p;
+  let s = `border:2px solid ${c1}; border-radius:999px; box-shadow:0 0 12px ${c1}66;`;
+  switch (p.type) {
+    case "cyber-angled": s = `border:2px solid ${c1};border-radius:5px;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);box-shadow:0 0 12px ${c1}66;`; break;
+    case "hud-chassis": s = `border:2px solid ${c1};border-left-width:6px;border-right-width:6px;border-radius:6px;box-shadow:0 0 12px ${c1}66;`; break;
+    case "glass-frost": s = `border:2px solid ${c1};border-radius:999px;background:linear-gradient(135deg, rgba(255,255,255,0.2), rgba(14,14,24,0.9));backdrop-filter:blur(4px);`; break;
+    case "royal-crest": s = `border:4px double ${c1};border-radius:999px;box-shadow:0 0 12px ${c1}66;`; break;
+    case "esports-slant": s = `border:2px solid ${c1};border-radius:7px;clip-path:polygon(9px 0,100% 0,calc(100% - 9px) 100%,0 100%);`; break;
+    case "broadcast-lower": s = `border:2px solid ${c1};border-left:6px solid ${c2};border-radius:3px 16px 16px 3px;`; break;
+    case "arcade-bevel": s = `border:2px dashed ${c1};border-radius:0;`; break;
+    case "hazard-plate": s = `border:2px solid ${c1};border-radius:4px;background:linear-gradient(135deg, rgba(14,14,24,0.96), rgba(26,20,45,0.95)), repeating-linear-gradient(45deg, ${c1}33 0 7px, transparent 7px 14px);`; break;
+    case "plasma-core": s = `border:2px solid ${c1};border-radius:999px;background:radial-gradient(circle at 20% 50%, ${c1}55, rgba(12,12,22,0.95) 75%);`; break;
+    case "holo-ticket": s = `border:2px solid ${c1};border-radius:9px;clip-path:polygon(0 0,100% 0,100% 34%,calc(100% - 6px) 50%,100% 66%,100% 100%,0 100%,0 66%,6px 50%,0 34%);background:linear-gradient(120deg, ${c1}44, rgba(14,14,24,0.95) 45%, ${c2}44);`; break;
+    case "neo-outline": s = `border:2px solid ${c1};border-radius:13px;box-shadow:0 0 0 2px ${c1}, 0 0 0 5px ${c1}33;`; break;
+    case "command-bar": s = `border:2px solid ${c1};border-left:6px solid ${c2};border-radius:2px;background:linear-gradient(90deg, ${c1}44, rgba(10,10,18,0.96) 48%);`; break;
+    case "wave-crest": s = `border:2px solid ${c1};border-radius:999px 16px 999px 16px;box-shadow:0 0 12px ${c1}66;`; break;
+    case "stealth-tag": s = `border:2px solid ${c1};border-radius:5px;clip-path:polygon(0 0,100% 0,calc(100% - 11px) 100%,0 100%);`; break;
+    case "aurora-pill": s = `border:2px solid ${c1};border-radius:999px;background:linear-gradient(120deg, ${c1}66, rgba(14,14,24,0.95) 45%, ${c2}66);`; break;
+  }
+  return `<div class="thumb alert">
+    <div class="a-bar" style="${s}">
+      <span class="a-avatar" style="background:linear-gradient(135deg, ${c1}, ${c2});"></span>
+      <span class="a-text">
+        <span class="t-line" style="width:34%; background:${c2}; height:3px;"></span>
+        <span class="t-line" style="width:70%; height:6px;"></span>
+      </span>
+    </div>
+  </div>`;
+}
+
+function glowThumb(p) {
+  const { c1, c2, c3 } = p;
+  const G = {
+    "neon-bloom": `0 0 12px ${c1}, 0 0 26px ${c2}88`,
+    "abyss-drop": `0 14px 22px rgba(0,0,0,0.95), 0 0 8px ${c1}`,
+    "rgb-split": `-4px -2px 0 ${c2}, 4px 2px 0 ${c3}, 0 0 12px ${c1}`,
+    "hard-esports": `6px 6px 0 ${c1}`,
+    "ethereal-halo": `0 0 16px #ffffff88, 0 0 30px ${c1}`,
+    "inferno-ember": `0 -3px 16px ${c1}, 0 6px 20px ${c2}`,
+    "frost-rim": `inset 0 0 14px ${c2}, 0 0 12px ${c1}`,
+    "laser-crisp": `0 0 0 2px ${c2}, 0 0 14px ${c1}`,
+    "retro-crt": `0 0 0 4px rgba(0,0,0,0.9), 0 0 20px ${c1}`,
+    "volumetric-mist": `0 14px 28px ${c1}66, 0 0 30px ${c2}66`,
+    "aurora-wash": `0 0 16px ${c1}, 0 0 34px ${c2}66`,
+    "double-rim": `0 0 0 2px rgba(255,255,255,0.22), 0 0 0 5px ${c1}, 0 0 16px ${c1}88`,
+    "soft-studio": `0 16px 30px rgba(0,0,0,0.6), 0 2px 0 rgba(255,255,255,0.12)`,
+    "toxic-bloom": `0 0 14px ${c1}, 0 0 34px ${c1}55, inset 0 0 18px ${c2}66`,
+    "prism-edge": `-3px 0 0 ${c1}, 3px 0 0 ${c2}, 0 0 16px ${c3}`,
+    "deep-vignette": `0 18px 40px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.08)`
+  }[p.type] || `0 0 14px ${c1}`;
+
+  return `<div class="thumb" style="background:radial-gradient(circle at 50% 55%, ${c1}1f, #06060b 72%);">
+    <div style="width:64%;height:54%;border-radius:7px;background:linear-gradient(160deg,#17172a,#0b0b14);border:1px solid ${c2}66;box-shadow:${G};"></div>
+  </div>`;
+}
+
+function motionThumb(p, motionClass, showDir) {
+  const { c1, c2 } = p;
+  const arrow = {
+    up: "↑", down: "↓", left: "←", right: "→",
+    "center-fast": "⚡", "center-overshoot": "◎",
+    "diag-tl": "↖", "diag-br": "↘", "twist-cw": "↻", "twist-ccw": "↺"
+  }[p.dir] || "";
+  return `<div class="thumb" style="background:linear-gradient(160deg,#10101a,#07070d);">
+    <div class="t-demo ${motionClass}" style="width:66%;height:56%;border-radius:7px;
+      background:linear-gradient(160deg,#17172a,#0b0b14);
+      border:2px solid ${c1}; box-shadow:0 0 14px ${c1}66; display:grid; place-items:center;
+      color:${c2}; font-size:13px; font-weight:800;">${showDir ? arrow : "◈"}</div>
+    ${showDir ? `<span style="position:absolute;bottom:5px;right:7px;font-size:9px;color:#6b6b86;font-weight:700;">${esc(p.dir)}</span>` : ""}
+  </div>`;
+}
+
+/* ============================================================================
+   PREVIEW BRIDGE + PERSISTENCE
+   ========================================================================== */
+function overlayWindow() {
+  const f = document.getElementById("preview-iframe");
+  try { return f && f.contentWindow ? f.contentWindow : null; } catch (e) { return null; }
+}
+
+function pushToOverlay() {
+  const w = overlayWindow();
+  if (!w) return;
+  try {
+    if (w.ShoutoutOverlay && typeof w.ShoutoutOverlay.applyConfig === "function") {
+      w.ShoutoutOverlay.applyConfig(state);
+      return;
+    }
+  } catch (e) { /* sandboxed file:// frame — fall through to postMessage */ }
+  try { w.postMessage({ type: "shoutout:config", config: JSON.parse(JSON.stringify(state)) }, "*"); } catch (e) {}
+}
+
+function sendTest(data) {
+  const w = overlayWindow();
+  if (!w) return;
+  try {
+    if (w.ShoutoutOverlay && typeof w.ShoutoutOverlay.test === "function") {
+      w.ShoutoutOverlay.applyConfig(state);
+      w.ShoutoutOverlay.test(data);
+      return;
+    }
+  } catch (e) {}
+  try {
+    w.postMessage({ type: "shoutout:config", config: JSON.parse(JSON.stringify(state)) }, "*");
+    w.postMessage({ type: "shoutout:test", data: data }, "*");
+  } catch (e) {}
+}
+
+function buildUrl() {
+  const base = window.location.href.replace(/[^/]*$/, "overlay.html").split("?")[0];
+  return base + "?" + new URLSearchParams(state).toString();
+}
+
+/* One place that saves, syncs the preview and refreshes read-outs. */
+function commit() {
+  try { localStorage.setItem("sb_shoutout_config_v1", JSON.stringify(state)); } catch (e) {}
+  document.getElementById("obs-url") && (document.getElementById("obs-url").textContent = buildUrl());
+
+  LIBS.forEach(l => {
+    const p = ALL[l.key].find(x => x.id === state[l.stateKey]) || ALL[l.key][0];
+    const el = document.getElementById(l.pill);
+    if (el) { el.textContent = "#" + p.id; el.parentElement.title = p.name; }
+  });
+
+  document.querySelectorAll("[data-num]").forEach(el => { el.value = state[el.dataset.num]; });
+  pushToOverlay();
+}
+
+/* ============================================================================
+   TEST PAYLOADS  (identical shape to what Streamer.bot broadcasts)
+   ========================================================================== */
+const TESTS = {
+  standard: () => ({
+    username: "MrrZed0", login: "mrrzed0", platform: "twitch",
+    userColor: state.twitchUserColor,
+    avatar: "https://unavatar.io/twitch/twitch",
+    game: "Call of Duty", hasClip: true,
+    clipUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    clipTitle: "Latest Channel Highlight Clip",
+    clipDuration: state.clipDuration
+  }),
+  long: () => ({
+    username: "TheLegendaryCaptainUltraLongStreamerName_TV",
+    login: "thelegendarycaptain", platform: "twitch",
+    userColor: state.twitchUserColor,
+    avatar: "https://unavatar.io/twitch/twitch",
+    game: "Call of Duty: Modern Warfare III - Warzone Tactical Special Edition",
+    hasClip: true,
+    clipUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    clipTitle: "This Clip Title Will Never Be Shown",
+    clipDuration: state.clipDuration
+  }),
+  noclip: () => ({
+    username: "FreshStreamer", login: "freshstreamer", platform: "twitch",
+    userColor: state.twitchUserColor,
+    avatar: "https://unavatar.io/twitch/twitch",
+    game: "", hasClip: false, clipUrl: "", clipDuration: state.clipDuration
+  }),
+  kickHls: () => ({
+    username: "KickStreamer", login: "kickstreamer", slug: "kickstreamer", platform: "kick",
+    avatar: "https://unavatar.io/twitch/twitch",
+    game: "Just Chatting", hasClip: true,
+    clipUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    clipTitle: "Sample HLS stream",
+    clipDuration: state.clipDuration
+  })
+};
+
+/* ============================================================================
+   TOAST / MODAL HELPERS
+   ========================================================================== */
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function copyText(txt, label) {
+  navigator.clipboard.writeText(txt).then(
+    () => toast(label || "Copied"),
+    () => {
+      const ta = document.createElement("textarea");
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); toast(label || "Copied"); } catch (e) { toast("Copy failed — select the URL manually"); }
+      ta.remove();
+    }
+  );
+}
+
+/* ---------- saved looks ---------- */
+function getThemes() {
+  try { return JSON.parse(localStorage.getItem("sb_shoutout_themes_v1") || "[]"); } catch (e) { return []; }
+}
+function setThemes(list) { localStorage.setItem("sb_shoutout_themes_v1", JSON.stringify(list)); }
+
+function renderThemes() {
+  const list = getThemes();
+  const wrap = document.getElementById("theme-list");
+  if (!list.length) {
+    wrap.innerHTML = `<div class="field-hint">No saved looks yet. Set everything how you like it, type a name above and hit Save.</div>`;
+    return;
+  }
+  wrap.innerHTML = list.map((t, i) =>
+    `<div class="theme-row">
+      <div><b>${esc(t.name)}</b><br><small>Border #${t.state.borderId} · Banner #${t.state.alertStyleId} · ${esc(t.state.colorMode)}</small></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" data-load="${i}">Load</button>
+        <button class="btn btn-sm" data-del="${i}">✕</button>
+      </div>
+    </div>`).join("");
+
+  wrap.querySelectorAll("[data-load]").forEach(b => b.onclick = () => {
+    const t = getThemes()[Number(b.dataset.load)];
+    state = Object.assign({}, DEFAULTS, t.state);
+    syncInputs(); renderSwatches(); renderGrid(); commit();
+    document.getElementById("theme-modal").classList.remove("open");
+    toast('Loaded "' + t.name + '"');
+  });
+  wrap.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const list2 = getThemes();
+    list2.splice(Number(b.dataset.del), 1);
+    setThemes(list2); renderThemes();
+  });
+}
+
+/* ============================================================================
+   PREVIEW SCALING  (iframe is a real 1920x1080 canvas, scaled to fit)
+   ========================================================================== */
+function scalePreview() {
+  const canvas = document.getElementById("canvas");
+  const f = document.getElementById("preview-iframe");
+  if (!canvas || !f) return;
+  const s = canvas.clientWidth / 1920;
+  f.style.transform = "scale(" + s + ")";
+}
+
+/* ============================================================================
+   BOOT
+   ========================================================================== */
+function init() {
+  try {
+    const saved = localStorage.getItem("sb_shoutout_config_v1");
+    if (saved) Object.assign(state, JSON.parse(saved));
+  } catch (e) {}
+  try { favourites = JSON.parse(localStorage.getItem("sb_shoutout_favs_v1") || "{}"); } catch (e) { favourites = {}; }
+
+  const total = Object.values(ALL).reduce((a, l) => a + l.length, 0);
+  document.getElementById("preset-count").textContent = total + " presets across 5 libraries";
+
+  renderPanel();
+  renderLibTabs();
+  renderPills();
+  renderGrid();
+  commit();
+
+  // library controls
+  document.getElementById("search").addEventListener("input", renderGrid);
+  document.getElementById("btn-favs").onclick = (e) => {
+    favsOnly = !favsOnly;
+    e.currentTarget.classList.toggle("btn-primary", favsOnly);
+    renderGrid();
+  };
+  document.getElementById("btn-shuffle").onclick = () => {
+    const list = filtered().length ? filtered() : ALL[activeLib];
+    setCurrentId(list[Math.floor(Math.random() * list.length)].id);
+    renderGrid(); commit();
+    toast("Random style picked");
+  };
+  document.getElementById("btn-jump-selected").onclick = () => {
+    document.getElementById("search").value = "";
+    activeCat = "All"; favsOnly = false;
+    document.getElementById("btn-favs").classList.remove("btn-primary");
+    renderPills(); renderGrid();
+    const el = document.querySelector(".card.selected");
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  };
+  document.querySelectorAll("[data-jump]").forEach(c => c.onclick = () => {
+    activeLib = c.dataset.jump; activeCat = "All";
+    document.getElementById("search").value = "";
+    renderLibTabs(); renderPills(); renderGrid();
+    document.querySelector(".card.selected")?.scrollIntoView({ block: "center" });
+  });
+
+  // background + preview
+  document.querySelectorAll("#bg-seg button").forEach(b => b.onclick = () => {
+    document.querySelectorAll("#bg-seg button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById("canvas").className = "canvas bg-" + b.dataset.bg;
+  });
+  document.getElementById("btn-reload").onclick = () => {
+    document.getElementById("preview-iframe").contentWindow.location.reload();
+    setTimeout(pushToOverlay, 400);
+  };
+
+  // tests
+  document.getElementById("t-standard").onclick = () => sendTest(TESTS.standard());
+  document.getElementById("t-long").onclick = () => sendTest(TESTS.long());
+  document.getElementById("t-noclip").onclick = () => sendTest(TESTS.noclip());
+  document.getElementById("t-kick-hls").onclick = () => sendTest(TESTS.kickHls());
+  document.getElementById("t-kick-live").onclick = () => {
+    const raw = (document.getElementById("kick-test-name").value || "").trim().replace(/^@/, "");
+    if (!raw) { toast("Type a Kick channel name first"); return; }
+    sendTest({
+      username: raw, login: raw.toLowerCase(), platform: "kick",
+      avatar: "", game: "", hasClip: false, clipUrl: "", clipDuration: state.clipDuration
+    });
+  };
+
+  // top bar
+  const doCopy = () => copyText(buildUrl(), "OBS browser source URL copied");
+  document.getElementById("btn-copy").onclick = doCopy;
+  document.getElementById("btn-copy-2").onclick = doCopy;
+  document.getElementById("btn-open").onclick = () => window.open(buildUrl(), "_blank");
+
+  document.getElementById("btn-random").onclick = () => {
+    LIBS.forEach(l => { state[l.stateKey] = ALL[l.key][Math.floor(Math.random() * ALL[l.key].length)].id; });
+    renderGrid(); commit();
+    toast("Rolled a brand new look");
+  };
+
+  document.getElementById("btn-reset").onclick = () => {
+    if (!confirm("Reset every setting back to the defaults?")) return;
+    state = Object.assign({}, DEFAULTS);
+    syncInputs(); renderSwatches(); renderGrid(); commit();
+    toast("Reset to defaults");
+  };
+
+  document.getElementById("btn-export").onclick = () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "shoutout-overlay-settings.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast("Settings exported");
+  };
+  document.getElementById("btn-import").onclick = () => document.getElementById("import-file").click();
+  document.getElementById("import-file").onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const parsed = JSON.parse(r.result);
+        state = Object.assign({}, DEFAULTS, parsed);
+        syncInputs(); renderSwatches(); renderGrid(); commit();
+        toast("Settings imported");
+      } catch (err) { toast("That file isn't a valid settings export"); }
+      e.target.value = "";
+    };
+    r.readAsText(file);
+  };
+
+  // themes modal
+  const modal = document.getElementById("theme-modal");
+  document.getElementById("btn-themes").onclick = () => { renderThemes(); modal.classList.add("open"); };
+  document.getElementById("theme-close").onclick = () => modal.classList.remove("open");
+  document.getElementById("theme-close-2").onclick = () => modal.classList.remove("open");
+  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove("open"); };
+  document.getElementById("theme-save").onclick = () => {
+    const name = document.getElementById("theme-name").value.trim();
+    if (!name) { toast("Give the look a name first"); return; }
+    const list = getThemes();
+    list.unshift({ name: name, state: JSON.parse(JSON.stringify(state)) });
+    setThemes(list.slice(0, 40));
+    document.getElementById("theme-name").value = "";
+    renderThemes();
+    toast('Saved "' + name + '"');
+  };
+
+  // keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+    if (e.key === "Escape") modal.classList.remove("open");
+    if (typing) return;
+    if (e.key === "/") { e.preventDefault(); document.getElementById("search").focus(); }
+    if (e.key.toLowerCase() === "t") sendTest(TESTS.standard());
+  });
+
+  // preview sizing + initial sync
+  const f = document.getElementById("preview-iframe");
+  f.addEventListener("load", () => { scalePreview(); setTimeout(pushToOverlay, 120); });
+  window.addEventListener("resize", scalePreview);
+  if (window.ResizeObserver) new ResizeObserver(scalePreview).observe(document.getElementById("canvas"));
+  scalePreview();
+  setTimeout(pushToOverlay, 500);
+}
+
+init();
+</script>
+</body>
+</html>
